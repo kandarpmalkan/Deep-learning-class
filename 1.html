@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unit 1: Foundations of Deep Learning</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f5f3ff', 100: '#ede9fe', 500: '#8b5cf6', 600: '#7c3aed', 900: '#4c1d95',
+                            950: '#2e1065' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* ── Base ── */
+        body {
+            background-color: #0f172a;
+            color: #cbd5e1;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            left: 23px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #334155;
+            z-index: 0;
+        }
+        .circle-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+        }
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .circle:hover {
+            transform: scale(1.02);
+        }
+        .circle-ai {
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 2px solid #3b82f6;
+            color: #60a5fa;
+        }
+        .circle-ml {
+            width: 70%;
+            height: 70%;
+            top: 25%;
+            left: 15%;
+            background-color: rgba(168, 85, 247, 0.1);
+            border: 2px solid #a855f7;
+            color: #c084fc;
+            padding-top: 1.5rem;
+        }
+        .circle-dl {
+            width: 40%;
+            height: 40%;
+            top: 50%;
+            left: 30%;
+            background-color: rgba(236, 72, 153, 0.1);
+            border: 2px solid #ec4899;
+            color: #f472b6;
+            padding-top: 1.5rem;
+        }
+
+        /* ── Interactive SVG ── */
+        .interactive-part {
+            cursor: pointer;
+            transition: filter 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+        }
+        .active-svg {
+            filter: drop-shadow(0 0 12px currentColor) brightness(1.2);
+        }
+        .card-highlight {
+            transition: all 0.3s ease;
+        }
+        .card-highlight.active-card {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            background: rgba(30, 41, 59, 0.95);
+            z-index: 10;
+        }
+
+        /* ── Scientist Popup ── */
+        .scientist-trigger {
+            position: relative;
+            display: inline-block;
+            flex-shrink: 0;
+            z-index: 20;
+        }
+        .scientist-trigger .thumb {
+            display: block;
+            width: 64px;
+            height: 64px;
+            border-radius: 9999px;
+            object-fit: cover;
+            border: 2px solid rgba(148, 163, 184, 0.2);
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s ease,
+                border-color 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .scientist-trigger .thumb:hover {
+            transform: scale(1.08);
+            border-color: #8b5cf6;
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.3);
+        }
+        .scientist-trigger .popup {
+            position: absolute;
+            bottom: calc(100% + 16px);
+            left: 50%;
+            transform: translateX(-50%) scale(0.92) translateY(8px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 999;
+            width: 220px;
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 16px;
+            padding: 16px 16px 14px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.08);
+            text-align: center;
+        }
+        .scientist-trigger .popup::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 14px;
+            height: 14px;
+            background: rgba(15, 23, 42, 0.94);
+            border-right: 1px solid rgba(139, 92, 246, 0.25);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 0 0 4px 0;
+        }
+        .scientist-trigger:hover .popup {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) scale(1) translateY(0);
+        }
+        .scientist-trigger .popup img {
+            display: block;
+            width: 160px;
+            height: 160px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin: 0 auto 10px;
+            border: 2px solid rgba(148, 163, 184, 0.1);
+            background: #1e293b;
+        }
+        .scientist-trigger .popup .name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #fff;
+            line-height: 1.3;
+        }
+        .scientist-trigger .popup .role {
+            font-size: 0.7rem;
+            color: #8b5cf6;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            margin-top: 2px;
+        }
+        @media (max-width: 640px) {
+            .scientist-trigger .popup {
+                bottom: auto;
+                top: calc(100% + 16px);
+                left: 50%;
+                transform: translateX(-50%) scale(0.92) translateY(-8px);
+                width: 180px;
+                padding: 12px;
+            }
+            .scientist-trigger .popup::after {
+                bottom: auto;
+                top: -8px;
+                transform: translateX(-50%) rotate(225deg);
+                border-right: 1px solid rgba(139, 92, 246, 0.25);
+                border-bottom: 1px solid rgba(139, 92, 246, 0.25);
+            }
+            .scientist-trigger .popup img {
+                width: 120px;
+                height: 120px;
+            }
+            .scientist-trigger .popup .name {
+                font-size: 0.85rem;
+            }
+            .scientist-trigger .thumb {
+                width: 48px;
+                height: 48px;
+            }
+        }
+
+        /* ── Sidebar ── */
+        .nav-link {
+            transition: all 0.15s;
+        }
+        .nav-link.active {
+            color: white !important;
+            background-color: #1e293b !important;
+        }
+        .section-toggle {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            transition: color 0.2s ease;
+        }
+        .section-toggle:hover .toggle-label {
+            color: #a78bfa;
+        }
+        .section-toggle .chevron {
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-shrink: 0;
+            margin-left: 6px;
+            color: #64748b;
+        }
+        .section-toggle.open .chevron {
+            transform: rotate(90deg);
+            color: #8b5cf6;
+        }
+        .section-toggle .toggle-label {
+            transition: color 0.2s ease;
+        }
+        .section-toggle.open .toggle-label {
+            color: #a78bfa;
+        }
+        .section-children {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease 0.08s,
+                margin 0.3s ease;
+            margin-top: 0;
+        }
+        .section-children.open {
+            max-height: 800px;
+            opacity: 1;
+            margin-top: 6px;
+        }
+        .section-children .nav-link {
+            padding-left: 12px;
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* ── View Toggle ── */
+        .view-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 0.4rem 0.8rem 0.4rem 1rem;
+            border-radius: 40px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #94a3b8;
+            transition: border-color 0.3s;
+        }
+        .view-toggle:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+        .view-toggle .toggle-track {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            background: #1e293b;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+        .view-toggle .toggle-track .toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: #64748b;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .view-toggle .toggle-track.active {
+            background: rgba(139, 92, 246, 0.4);
+        }
+        .view-toggle .toggle-track.active .toggle-thumb {
+            left: 18px;
+            background: #8b5cf6;
+        }
+        .view-toggle .toggle-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            user-select: none;
+            min-width: 36px;
+        }
+        @media (max-width: 640px) {
+            .view-toggle {
+                top: 0.75rem;
+                right: 0.75rem;
+                padding: 0.3rem 0.6rem 0.3rem 0.8rem;
+                font-size: 0.65rem;
+            }
+            .view-toggle .toggle-track {
+                width: 30px;
+                height: 18px;
+            }
+            .view-toggle .toggle-track .toggle-thumb {
+                width: 14px;
+                height: 14px;
+            }
+            .view-toggle .toggle-track.active .toggle-thumb {
+                left: 14px;
+            }
+            .view-toggle .toggle-label {
+                min-width: 28px;
+                font-size: 0.55rem;
+            }
+        }
+
+        /* ─── MODAL ─── */
+        .modal-container {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .modal-container .modal-content {
+            background: #0f172a;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            padding: 1.5rem 1.5rem 1.5rem 1.5rem;
+            width: 90vw;
+            height: 88vh;
+            max-width: 96vw;
+            max-height: 94vh;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-container .modal-content .modal-svg-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            min-width: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .modal-container .modal-content .modal-svg-container svg {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            border-radius: 0.5rem;
+            object-fit: contain;
+        }
+        .modal-container .modal-close-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #94a3b8;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 9999px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+            z-index: 20;
+            font-weight: 300;
+            line-height: 1;
+        }
+        .modal-container .modal-close-btn:hover {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+            transform: scale(1.05);
+        }
+        .modal-container .modal-title {
+            position: absolute;
+            top: 0.75rem;
+            left: 1.5rem;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            z-index: 20;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 0.35rem 1rem;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        /* ── Expand button on diagrams ── */
+        .diagram-expand-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            z-index: 10;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #94a3b8;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .diagram-expand-btn:hover {
+            background: rgba(30, 41, 59, 0.9);
+            color: white;
+            border-color: rgba(139, 92, 246, 0.4);
+            transform: scale(1.05);
+        }
+        .diagram-expand-btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        .diagram-wrapper {
+            position: relative;
+        }
+
+        @media (max-width: 640px) {
+            .modal-container .modal-content {
+                width: 96vw;
+                height: 92vh;
+                padding: 1rem;
+                border-radius: 1rem;
+            }
+            .modal-container .modal-title {
+                font-size: 0.65rem;
+                top: 0.5rem;
+                left: 0.75rem;
+                padding: 0.2rem 0.6rem;
+            }
+            .modal-container .modal-close-btn {
+                width: 2rem;
+                height: 2rem;
+                font-size: 1rem;
+                top: 0.5rem;
+                right: 0.5rem;
+            }
+        }
+
+        /* ─── SIDEBAR TOGGLE ─── */
+        #sidebarToggle {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 60;
+            width: 28px;
+            height: 48px;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.25s ease,
+                border-color 0.25s ease,
+                transform 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            color: #94a3b8;
+            left: 256px;
+        }
+        #sidebarToggle:hover {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #e2e8f0;
+        }
+        #sidebarToggle svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-shrink: 0;
+        }
+        #sidebarToggle .arrow-icon {
+            display: block;
+        }
+        #sidebarToggle.closed .arrow-icon {
+            transform: rotate(0deg);
+        }
+        #sidebarToggle:not(.closed) .arrow-icon {
+            transform: rotate(180deg);
+        }
+
+        /* ── Sidebar slide transition ── */
+        #sidebar {
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                min-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border 0.3s ease,
+                opacity 0.3s ease;
+            overflow: hidden;
+            flex-shrink: 0;
+            width: 256px;
+            min-width: 256px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+        #sidebar.sidebar-closed {
+            width: 0 !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            border-right-width: 0 !important;
+            opacity: 0.6;
+            overflow: hidden;
+        }
+        #sidebar.sidebar-closed .p-6>* {
+            opacity: 0;
+            pointer-events: none;
+            transition-delay: 0s;
+        }
+        #sidebar .p-6>* {
+            transition: opacity 0.25s ease 0.1s;
+        }
+        #sidebar.sidebar-closed .p-6>* {
+            opacity: 0;
+            transition-delay: 0s;
+        }
+
+        /* Mobile sidebar overlay */
+        @media (max-width: 767px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                height: 100vh;
+                z-index: 55;
+                width: 280px;
+                min-width: 280px;
+                transform: translateX(0);
+                transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    min-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                border-right: 1px solid rgba(148, 163, 184, 0.15);
+                background: rgba(15, 23, 42, 0.98);
+                backdrop-filter: blur(8px);
+            }
+            #sidebar.sidebar-closed {
+                transform: translateX(-100%);
+                width: 280px !important;
+                min-width: 280px !important;
+                padding: 1.5rem !important;
+                opacity: 1 !important;
+                border-right-width: 1px !important;
+            }
+            #sidebar.sidebar-closed .p-6>* {
+                opacity: 1 !important;
+                pointer-events: auto !important;
+            }
+            #sidebar-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 54;
+                opacity: 0;
+                transition: opacity 0.35s ease;
+            }
+            #sidebar-backdrop.active {
+                display: block;
+                opacity: 1;
+            }
+            #sidebarToggle {
+                left: 0 !important;
+                border-radius: 0 8px 8px 0;
+                border-left: none;
+                width: 26px;
+                height: 44px;
+            }
+            #sidebarToggle.sidebar-open-mobile {
+                left: 280px !important;
+                border-radius: 0 8px 8px 0;
+                border-left: none;
+            }
+            .mobile-header-shift {
+                margin-left: 0;
+                transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .mobile-header-shift.shifted {
+                margin-left: 0;
+            }
+        }
+
+        @media (min-width: 768px) {
+            #sidebar-backdrop {
+                display: none !important;
+            }
+            #sidebarToggle {
+                left: 256px;
+                border-radius: 0 8px 8px 0;
+                border-left: none;
+                width: 28px;
+                height: 48px;
+            }
+            #sidebarToggle.sidebar-closed {
+                left: 0 !important;
+                border-radius: 0 8px 8px 0;
+                border-left: none;
+                border-right: 1px solid rgba(148, 163, 184, 0.1);
+            }
+            #sidebar.sidebar-closed {
+                width: 0 !important;
+                min-width: 0 !important;
+                padding: 0 !important;
+                border-right-width: 0 !important;
+                opacity: 0.6;
+                overflow: hidden;
+            }
+            #sidebar.sidebar-closed .p-6>* {
+                opacity: 0;
+                pointer-events: none;
+                transition-delay: 0s;
+            }
+        }
+
+        /* ── Section navigation buttons ── */
+        .section-nav {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+            margin-top: 2rem;
+        }
+        .section-nav.visible {
+            display: flex;
+        }
+        .section-nav button {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+            padding: 0.6rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-nav button:hover:not(:disabled) {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+            color: white;
+            transform: translateY(-1px);
+        }
+        .section-nav button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .section-nav .nav-indicator {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 640px) {
+            .section-nav {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .section-nav button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <!-- ─── Sidebar Backdrop (mobile) ─── -->
+    <div id="sidebar-backdrop" onclick="closeSidebarMobile()"></div>
+
+    <!-- ─── Sidebar Toggle Button ─── -->
+    <button id="sidebarToggle" aria-label="Toggle sidebar">
+        <svg class="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+
+    <!-- ─── View Toggle ─── -->
+    <div class="view-toggle" id="viewToggle">
+        <span class="toggle-label" id="toggleLabel">Full</span>
+        <div class="toggle-track" id="toggleTrack">
+            <div class="toggle-thumb" id="toggleThumb"></div>
+        </div>
+        <span class="toggle-label" id="toggleLabel2">Section</span>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden flex justify-between items-center p-4 bg-slate-900 border-b border-slate-800 sticky top-0 z-50 mobile-header-shift" id="mobileHeader">
+        <h1 class="text-xl font-bold text-white truncate">Deep Learning</h1>
+        <button id="mobile-menu-btn" class="text-gray-300 hover:text-white p-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-slate-900 border-r border-slate-800 z-40">
+        <div class="p-6 h-full overflow-y-auto">
+            <h2 class="text-2xl font-bold text-white mb-2 tracking-tight">DL course</h2>
+            <p class="text-sm text-brand-500 font-medium mb-6">Unit 1: Foundations</p>
+            <nav class="space-y-1" id="sidebar-nav">
+
+                <!-- 1.1 Introduction -->
+                <div class="pt-1 pb-1 section-container">
+                    <div class="section-toggle open" data-target="section-11">
+                        <span class="text-sm text-brand-500 font-bold uppercase tracking-wider toggle-label">1.1 Introduction</span>
+                        <svg class="chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                    <div class="section-children open" id="section-11">
+                        <a href="#intro" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">Introduction</a>
+                        <a href="#history" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">Evolution & History</a>
+                        <a href="#applications" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">Applications</a>
+                        <a href="#concepts" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">ML Concepts</a>
+                        <a href="#comparison" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">DL vs ML</a>
+                        <a href="#summary" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">Summary</a>
+                    </div>
+                </div>
+
+                <!-- 1.2 The Perceptron -->
+                <div class="pt-6 pb-1 section-container">
+                    <div class="section-toggle open" data-target="section-12">
+                        <span class="text-sm text-brand-500 font-bold uppercase tracking-wider toggle-label">1.2 The Perceptron</span>
+                        <svg class="chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                    <div class="section-children open" id="section-12">
+                        <a href="#perceptron-intro" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">Introduction</a>
+                        <a href="#biological-neuron" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">Biological Neuron</a>
+                        <a href="#artificial-neuron" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">Artificial Neuron</a>
+                        <a href="#ann-scaling" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">Scaling to ANNs</a>
+                        <a href="#xor-problem" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">The XOR Problem</a>
+                        <a href="#perceptron-summary" class="nav-link block px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800">Summary</a>
+                    </div>
+                </div>
+
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto transition-all duration-400" id="mainContent">
+        <div class="max-w-4xl mx-auto p-6 md:p-10 space-y-16" id="mainContentInner">
+
+            <!-- ═══════ SECTION: Intro ═══════ -->
+            <section id="intro" class="scroll-mt-24 section-content" data-section="intro">
+                <header class="mb-10 border-b border-slate-800 pb-6">
+                    <span class="text-brand-500 font-semibold tracking-wider uppercase text-sm">Unit 1</span>
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-white mt-2 mb-4 leading-tight">Foundations of Deep Learning</h1>
+                    <p class="text-xl text-slate-400">Understanding the hierarchical relationship between AI, ML, and DL.</p>
+                </header>
+                <div class="prose prose-invert max-w-none text-lg text-slate-300 leading-relaxed mb-10">
+                    <p>The field of artificial intelligence has undergone a remarkable evolution over the past seven decades. To understand where deep learning stands today, we must first establish the hierarchical relationship between these three foundational concepts.</p>
+                </div>
+                <div class="flex flex-col lg:flex-row items-center gap-10 mb-10">
+                    <div class="flex-1 w-full space-y-6">
+                        <div class="glass-card p-5 rounded-xl border-l-4 border-blue-500">
+                            <h3 class="text-xl font-bold text-white mb-2">Artificial Intelligence (AI)</h3>
+                            <p class="text-sm text-slate-300">The broadest umbrella term. Any technique that enables computers to mimic human intelligence (logic, rule-based systems, expert systems).</p>
+                        </div>
+                        <div class="glass-card p-5 rounded-xl border-l-4 border-purple-500">
+                            <h3 class="text-xl font-bold text-white mb-2">Machine Learning (ML)</h3>
+                            <p class="text-sm text-slate-300">A subset of AI. Uses algorithms to parse data, learn from it, and make decisions. You feed it examples, and it figures out the rules.</p>
+                        </div>
+                        <div class="glass-card p-5 rounded-xl border-l-4 border-pink-500">
+                            <h3 class="text-xl font-bold text-white mb-2">Deep Learning (DL)</h3>
+                            <p class="text-sm text-slate-300">A specialized subset of ML. Relies on multi-layered artificial neural networks (multiple "hidden layers") to solve highly complex, unstructured problems.</p>
+                        </div>
+                    </div>
+                    <div class="shrink-0 py-8 lg:py-0">
+                        <div class="circle-container">
+                            <div class="circle circle-ai">Artificial Intelligence</div>
+                            <div class="circle circle-ml">Machine Learning</div>
+                            <div class="circle circle-dl text-sm">Deep Learning</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-2xl p-6 shadow-lg shadow-amber-500/5 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-20">
+                        <svg class="w-16 h-16 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-amber-400 font-bold uppercase tracking-wider text-sm mb-2">The Golden Rule</h3>
+                    <p class="text-xl md:text-2xl font-medium text-white relative z-10">All deep learning is machine learning, but <span class="text-amber-400">not all machine learning is deep learning.</span></p>
+                </div>
+            </section>
+
+            <!-- ═══════ SECTION: History ═══════ -->
+            <section id="history" class="scroll-mt-24 section-content" data-section="history">
+                <h2 class="text-3xl font-bold text-white mb-8 border-b border-slate-800 pb-4">Evolution and History</h2>
+                <p class="text-slate-300 mb-10 text-lg">The journey from early AI concepts to today's deep learning revolution is a story of ambition, disappointment, persistence, and eventual triumph.</p>
+                <div class="relative timeline-line space-y-12 pb-8">
+                    <!-- 1957 -->
+                    <div class="relative z-10 flex gap-6">
+                        <div class="w-12 h-12 bg-slate-800 border-4 border-slate-900 rounded-full flex items-center justify-center shrink-0 shadow-lg mt-1 relative z-10">
+                            <span class="text-xs font-bold text-brand-400">1957</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl flex-1">
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-4 mb-4">
+                                <div class="scientist-trigger">
+                                    <img src="https://placehold.co/100x100/1e293b/60a5fa?text=FR" alt="Frank Rosenblatt" class="thumb" />
+                                    <div class="popup">
+                                        <img src="C:\Users\Kandarp Malkan\OneDrive\Desktop\DL\1. Intro to DL\frank_rosenblatt.jpg" alt="Frank Rosenblatt" />
+                                        <div class="name">Frank Rosenblatt</div>
+                                        <div class="role">Perceptron Pioneer</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">The Birth of the Perceptron</h3>
+                                    <p class="text-sm text-brand-400 font-medium">Frank Rosenblatt</p>
+                                </div>
+                            </div>
+                            <p class="text-slate-300">Demonstrated the first artificial neural network machine for the U.S. Navy on an IBM 704 computer. He believed perceptrons could simulate brain principles to learn and make decisions. It was an algorithm for supervised learning of binary classifiers.</p>
+                        </div>
+                    </div>
+                    <!-- 1969 -->
+                    <div class="relative z-10 flex gap-6">
+                        <div class="w-12 h-12 bg-slate-800 border-4 border-slate-900 rounded-full flex items-center justify-center shrink-0 shadow-lg mt-1 relative z-10">
+                            <span class="text-xs font-bold text-red-400">1969</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl flex-1 border-l-2 border-l-red-500/50">
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-4 mb-4">
+                                <div class="scientist-trigger">
+                                    <img src="https://placehold.co/100x100/1e293b/f87171?text=M+P" alt="Minsky & Papert" class="thumb" />
+                                    <div class="popup">
+                                        <img src="C:\Users\Kandarp Malkan\OneDrive\Desktop\DL\1. Intro to DL\marvin minsky.avif" alt="Minsky & Papert" />
+                                        <div class="name">Minsky &amp; Papert</div>
+                                        <div class="role">XOR Critics</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">The XOR Crisis &amp; First AI Winter</h3>
+                                    <p class="text-sm text-red-400 font-medium">Marvin Minsky &amp; Seymour Papert</p>
+                                </div>
+                            </div>
+                            <p class="text-slate-300">Published <em>Perceptrons</em>, proving a single-layer perceptron cannot compute the XOR function (it's not linearly separable). This devastating critique caused funding agencies to redirect money to symbolic AI, plunging the field into a 17-year "AI Winter".</p>
+                        </div>
+                    </div>
+                    <!-- 1986 -->
+                    <div class="relative z-10 flex gap-6">
+                        <div class="w-12 h-12 bg-slate-800 border-4 border-slate-900 rounded-full flex items-center justify-center shrink-0 shadow-lg mt-1 relative z-10">
+                            <span class="text-xs font-bold text-green-400">1986</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl flex-1">
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-4 mb-4">
+                                <div class="scientist-trigger">
+                                    <img src="https://placehold.co/100x100/1e293b/4ade80?text=GH" alt="Geoffrey Hinton" class="thumb" />
+                                    <div class="popup">
+                                        <img src="C:\Users\Kandarp Malkan\OneDrive\Desktop\DL\1. Intro to DL\Geoffrey Hinton.jpg" alt="Geoffrey Hinton" />
+                                        <div class="name">Hinton, Rumelhart, Williams</div>
+                                        <div class="role">Backpropagation Pioneers</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">The Backpropagation Revolution</h3>
+                                    <p class="text-sm text-green-400 font-medium">Geoffrey Hinton, David Rumelhart, Ronald Williams</p>
+                                </div>
+                            </div>
+                            <p class="text-slate-300 mb-3">Published a seminal paper in <em>Nature</em> on learning representations via back-propagating errors. This allowed the training of multi-layer neural networks by adjusting weights to minimize output differences.</p>
+                            <div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-400 border border-slate-700">
+                                <strong class="text-white">Universal Approximation Theorem:</strong> A feedforward network with a single hidden layer can approximate any continuous function.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 1989 -->
+                    <div class="relative z-10 flex gap-6">
+                        <div class="w-12 h-12 bg-slate-800 border-4 border-slate-900 rounded-full flex items-center justify-center shrink-0 shadow-lg mt-1 relative z-10">
+                            <span class="text-xs font-bold text-blue-400">1989</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl flex-1">
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-4 mb-4">
+                                <div class="scientist-trigger">
+                                    <img src="https://placehold.co/100x100/1e293b/60a5fa?text=YL" alt="Yann LeCun" class="thumb" />
+                                    <div class="popup">
+                                        <img src="C:\Users\Kandarp Malkan\OneDrive\Desktop\DL\1. Intro to DL\Yann LeCun.jpg" alt="Yann LeCun" />
+                                        <div class="name">Yann LeCun</div>
+                                        <div class="role">CNN Inventor</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">Birth of CNNs</h3>
+                                    <p class="text-sm text-blue-400 font-medium">Yann LeCun</p>
+                                </div>
+                            </div>
+                            <p class="text-slate-300">Developed Convolutional Neural Networks (CNNs) for handwritten digit recognition. His architecture (LeNet-5) respected the spatial structure of images using local receptive fields, shared weights, and spatial subsampling.</p>
+                        </div>
+                    </div>
+                    <!-- 2006 -->
+                    <div class="relative z-10 flex gap-6">
+                        <div class="w-12 h-12 bg-slate-800 border-4 border-slate-900 rounded-full flex items-center justify-center shrink-0 shadow-lg mt-1 relative z-10">
+                            <span class="text-xs font-bold text-purple-400">2006</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl flex-1">
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-4 mb-4">
+                                <div class="scientist-trigger">
+                                    <img src="https://placehold.co/100x100/1e293b/c084fc?text=GH" alt="Geoffrey Hinton" class="thumb" />
+                                    <div class="popup">
+                                        <img src="C:\Users\Kandarp Malkan\OneDrive\Desktop\DL\1. Intro to DL\Geoffrey Hinton.jpg" alt="Geoffrey Hinton" />
+                                        <div class="name">Geoffrey Hinton</div>
+                                        <div class="role">Deep Learning Godfather</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">Unsupervised Pretraining &amp; DBNs</h3>
+                                    <p class="text-sm text-purple-400 font-medium">Geoffrey Hinton et al.</p>
+                                </div>
+                            </div>
+                            <p class="text-slate-300">Solved the vanishing gradient problem using a fast, greedy layer-wise unsupervised learning algorithm to initialize weights before fine-tuning with supervised backpropagation. This marked the true birth of "Deep" learning.</p>
+                        </div>
+                    </div>
+                    <!-- 2012 -->
+                    <div class="relative z-10 flex gap-6">
+                        <div class="w-12 h-12 bg-slate-800 border-4 border-slate-900 rounded-full flex items-center justify-center shrink-0 shadow-lg mt-1 relative z-10">
+                            <span class="text-xs font-bold text-yellow-400">2012</span>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl flex-1 bg-gradient-to-br from-slate-800 to-slate-900 border-yellow-500/30">
+                            <div class="flex flex-col sm:flex-row sm:items-start gap-4 mb-4">
+                                <div class="scientist-trigger">
+                                    <img src="https://placehold.co/100x100/1e293b/facc15?text=AK" alt="Alex Krizhevsky" class="thumb" />
+                                    <div class="popup">
+                                        <img src="C:\Users\Kandarp Malkan\OneDrive\Desktop\DL\1. Intro to DL\alex krizhevsky.webp" alt="AlexNet Team" />
+                                        <div class="name">Krizhevsky, Sutskever, Hinton</div>
+                                        <div class="role">ImageNet Champions</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">The ImageNet Breakthrough</h3>
+                                    <p class="text-sm text-yellow-400 font-medium">Alex Krizhevsky, Ilya Sutskever, Geoffrey Hinton</p>
+                                </div>
+                            </div>
+                            <p class="text-slate-300">The "SuperVision" team submitted <strong>AlexNet</strong> to the ILSVRC. Trained on GPUs with 60M parameters, it achieved an unprecedented top-5 error rate of 15.3% (runner up was 26%). This quantum leap catapulted deep learning into the mainstream.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════ SECTION: Applications ═══════ -->
+            <section id="applications" class="scroll-mt-24 section-content" data-section="applications">
+                <h2 class="text-3xl font-bold text-white mb-8 border-b border-slate-800 pb-4">Real-World Applications</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="glass-card p-5 rounded-xl hover:bg-slate-800/80 transition-colors">
+                        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 text-blue-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Computer Vision</h3>
+                        <p class="text-sm text-slate-400">Facial recognition, autonomous vehicles, medical image analysis, real-time object detection.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-xl hover:bg-slate-800/80 transition-colors">
+                        <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 text-purple-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Natural Language Processing</h3>
+                        <p class="text-sm text-slate-400">Machine translation, chatbots, sentiment analysis, text summarization.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-xl hover:bg-slate-800/80 transition-colors">
+                        <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center mb-4 text-green-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Speech Recognition</h3>
+                        <p class="text-sm text-slate-400">Virtual assistants (Siri, Alexa), real-time transcription, voice-controlled systems.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-xl hover:bg-slate-800/80 transition-colors">
+                        <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center mb-4 text-red-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Healthcare</h3>
+                        <p class="text-sm text-slate-400">Disease detection from medical images, drug discovery, personalized treatment.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-xl hover:bg-slate-800/80 transition-colors">
+                        <div class="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-4 text-emerald-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Agriculture</h3>
+                        <p class="text-sm text-slate-400">Crop disease detection from leaf images, yield prediction, smart farming.</p>
+                    </div>
+                    <div class="glass-card p-5 rounded-xl hover:bg-slate-800/80 transition-colors">
+                        <div class="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center mb-4 text-yellow-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Finance</h3>
+                        <p class="text-sm text-slate-400">Fraud detection, algorithmic trading, and credit scoring.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════ SECTION: ML Concepts ═══════ -->
+            <section id="concepts" class="scroll-mt-24 section-content" data-section="concepts">
+                <h2 class="text-3xl font-bold text-white mb-6 border-b border-slate-800 pb-4">Machine Learning Fundamentals</h2>
+                <p class="text-slate-300 mb-8">Before diving deeper, understand the two fundamental types of machine learning tasks:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                    <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-400">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Regression</h3>
+                        </div>
+                        <p class="text-slate-300 mb-4">Predicting a <strong class="text-indigo-300">continuous numerical value</strong>.</p>
+                        <ul class="space-y-2 text-sm text-slate-400 list-disc list-inside">
+                            <li>Predicting house prices (size, location)</li>
+                            <li>Forecasting stock prices</li>
+                            <li>Estimating tomorrow's temperature</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="bg-teal-500/20 p-2 rounded-lg text-teal-400">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Classification</h3>
+                        </div>
+                        <p class="text-slate-300 mb-4">Predicting a <strong class="text-teal-300">discrete category or class</strong>.</p>
+                        <ul class="space-y-2 text-sm text-slate-400 list-disc list-inside">
+                            <li>Spam vs. Not Spam (Binary)</li>
+                            <li>Recognizing digits 0-9 (Multi-class)</li>
+                            <li>Benign vs. Malignant tumor diagnosis</li>
+                        </ul>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-6">Feature Engineering vs. Representation Learning</h3>
+                <p class="text-slate-300 mb-8">This is perhaps the most important conceptual difference between traditional ML and Deep Learning.</p>
+                <div class="space-y-6 mb-8">
+                    <div class="glass-card p-6 rounded-2xl border-l-4 border-slate-500">
+                        <h4 class="text-lg font-bold text-white mb-2">Feature Engineering (Traditional ML)</h4>
+                        <p class="text-slate-300 mb-3">Using human ingenuity and domain knowledge to manually extract relevant features from raw data. Time-consuming and trial-and-error heavy.</p>
+                        <ul class="text-sm text-slate-400 list-disc list-inside">
+                            <li>Spam detection: Counting "!" or checking sender domain.</li>
+                            <li>Image recognition: Defining algorithms to find edges/corners manually.</li>
+                        </ul>
+                    </div>
+                    <div class="glass-card p-6 rounded-2xl border-l-4 border-brand-500">
+                        <h4 class="text-lg font-bold text-white mb-2">Representation Learning (Deep Learning)</h4>
+                        <p class="text-slate-300 mb-3">The model automatically learns a parametric mapping from raw input to feature vectors, capturing abstract concepts hierarchically.</p>
+                        <ul class="text-sm text-slate-400 list-disc list-inside">
+                            <li>Early layers: Detect simple edges and textures.</li>
+                            <li>Middle layers: Detect parts of objects (eyes, wheels).</li>
+                            <li>Deep layers: Recognize complete objects (faces, cars).</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-brand-900/40 border border-brand-500/30 rounded-xl p-5 flex gap-4 items-start">
+                    <svg class="w-6 h-6 text-brand-400 shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div>
+                        <strong class="text-white block mb-1">Key Insight</strong>
+                        <p class="text-slate-300 text-sm">Traditional machine learning requires humans to tell the model what features to look for. Deep learning enables the model to discover for itself what features matter.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════ SECTION: DL vs ML ═══════ -->
+            <section id="comparison" class="scroll-mt-24 section-content" data-section="comparison">
+                <h2 class="text-3xl font-bold text-white mb-8 border-b border-slate-800 pb-4">When to Use DL vs. Traditional ML</h2>
+                <div class="grid lg:grid-cols-2 gap-8 mb-10">
+                    <div class="overflow-hidden rounded-2xl border border-slate-700 bg-slate-800/30">
+                        <div class="bg-slate-800 px-6 py-4 border-b border-slate-700">
+                            <h3 class="font-bold text-white">Use Traditional ML When...</h3>
+                        </div>
+                        <div class="divide-y divide-slate-700/50">
+                            <div class="p-4 grid grid-cols-3 gap-4 hover:bg-slate-800/50">
+                                <div class="text-sm font-medium text-slate-200">Limited data</div>
+                                <div class="col-span-2 text-sm text-slate-400">Works well with small to medium datasets. DL overfits.</div>
+                            </div>
+                            <div class="p-4 grid grid-cols-3 gap-4 hover:bg-slate-800/50">
+                                <div class="text-sm font-medium text-slate-200">Structured data</div>
+                                <div class="col-span-2 text-sm text-slate-400">Excels at spreadsheet/tabular data (Random Forests).</div>
+                            </div>
+                            <div class="p-4 grid grid-cols-3 gap-4 hover:bg-slate-800/50">
+                                <div class="text-sm font-medium text-slate-200">Interpretability needed</div>
+                                <div class="col-span-2 text-sm text-slate-400">Traceable decisions (crucial for healthcare/finance).</div>
+                            </div>
+                            <div class="p-4 grid grid-cols-3 gap-4 hover:bg-slate-800/50">
+                                <div class="text-sm font-medium text-slate-200">Limited computing</div>
+                                <div class="col-span-2 text-sm text-slate-400">Can train on a standard CPU/laptop.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-2xl border border-brand-500/30 bg-brand-900/10">
+                        <div class="bg-brand-900/40 px-6 py-4 border-b border-brand-500/30">
+                            <h3 class="font-bold text-white">Use Deep Learning When...</h3>
+                        </div>
+                        <div class="divide-y divide-brand-500/20">
+                            <div class="p-4 grid grid-cols-3 gap-4 hover:bg-brand-900/30">
+                                <div class="text-sm font-medium text-slate-200">Large data</div>
+                                <div class="col-span-2 text-sm text-slate-400">Thrives on big data. More data = better performance.</div>
+                            </div>
+                            <div class="p-4 grid grid-cols-3 gap-4 hover:bg-brand-900/30">
+                                <div class="text-sm font-medium text-slate-200">Unstructured data</div>
+                                <div class="col-span-2 text-sm text-slate-400">Shines with images, audio, video, and raw text.</div>
+                            </div>
+                            <div class="p-4 grid grid-cols-3 gap-4 hover:bg-brand-900/30">
+                                <div class="text-sm font-medium text-slate-200">Complex patterns</div>
+                                <div class="col-span-2 text-sm text-slate-400">Captures highly non-linear, hidden relationships.</div>
+                            </div>
+                            <div class="p-4 grid grid-cols-3 gap-4 hover:bg-brand-900/30">
+                                <div class="text-sm font-medium text-slate-200">SOTA needed</div>
+                                <div class="col-span-2 text-sm text-slate-400">Consistently outperforms ML in NLP and Vision.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card rounded-2xl p-6 md:p-8">
+                    <h3 class="text-xl font-bold text-white mb-6">Practical Decision Framework</h3>
+                    <div class="space-y-4 font-mono text-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-500">&gt;</span>
+                            <span class="text-white">Data type?</span>
+                            <span class="text-brand-400 shrink-0">Unstructured → DL</span>
+                            <span class="text-slate-600">|</span>
+                            <span class="text-green-400 shrink-0">Structured → ML</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-500">&gt;</span>
+                            <span class="text-white">Data volume?</span>
+                            <span class="text-green-400 shrink-0">&lt;10k → ML</span>
+                            <span class="text-slate-600">|</span>
+                            <span class="text-brand-400 shrink-0">&gt;100k → DL</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-500">&gt;</span>
+                            <span class="text-white">Explainability?</span>
+                            <span class="text-green-400 shrink-0">Required → ML</span>
+                            <span class="text-slate-600">|</span>
+                            <span class="text-brand-400 shrink-0">Not crucial → DL</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-500">&gt;</span>
+                            <span class="text-white">Compute?</span>
+                            <span class="text-green-400 shrink-0">Limited (CPU) → ML</span>
+                            <span class="text-slate-600">|</span>
+                            <span class="text-brand-400 shrink-0">Ample (GPU) → DL</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════ SECTION: Summary ═══════ -->
+            <section id="summary" class="scroll-mt-24 section-content" data-section="summary">
+                <h2 class="text-3xl font-bold text-white mb-8 border-b border-slate-800 pb-4">Summary Comparison</h2>
+                <div class="overflow-x-auto rounded-xl border border-slate-700">
+                    <table class="w-full text-left text-sm text-slate-400">
+                        <thead class="bg-slate-800 text-slate-200">
+                            <tr>
+                                <th class="p-4 font-semibold">Aspect</th>
+                                <th class="p-4 font-semibold border-l border-slate-700">Traditional Machine Learning</th>
+                                <th class="p-4 font-semibold border-l border-slate-700">Deep Learning</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700/50 bg-slate-900/50">
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-slate-300">Data requirement</td><td class="p-4 border-l border-slate-700">Small to medium</td><td class="p-4 border-l border-slate-700">Large (millions of examples)</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-slate-300">Data type</td><td class="p-4 border-l border-slate-700">Structured, tabular</td><td class="p-4 border-l border-slate-700">Unstructured (images, text, audio)</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-slate-300">Feature engineering</td><td class="p-4 border-l border-slate-700">Manual, requires domain expertise</td><td class="p-4 border-l border-slate-700">Automatic, learned from data</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-slate-300">Interpretability</td><td class="p-4 border-l border-slate-700">High</td><td class="p-4 border-l border-slate-700">Low ("black box")</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-slate-300">Computational cost</td><td class="p-4 border-l border-slate-700">Low (CPU)</td><td class="p-4 border-l border-slate-700">High (GPU/TPU required)</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-slate-300">Training time</td><td class="p-4 border-l border-slate-700">Minutes to hours</td><td class="p-4 border-l border-slate-700">Hours to weeks</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-8 text-slate-400 text-sm leading-relaxed text-center max-w-3xl mx-auto">
+                    The history of deep learning tells a story of resilience and intellectual persistence. Today, deep learning stands as one of the most transformative technologies of our era, but it is not a universal solution. The wise practitioner knows when to reach for deep learning and when a simpler tool will suffice.
+                </div>
+            </section>
+
+            <!-- ═══════ 1.2 The Perceptron ═══════ -->
+            <section id="perceptron-intro" class="scroll-mt-24 section-content" data-section="perceptron-intro">
+                <header class="mb-10 border-t-2 border-dashed border-slate-800 pt-10">
+                    <span class="text-brand-500 font-semibold tracking-wider uppercase text-sm">Unit 1.2</span>
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-white mt-2 mb-4 leading-tight">The Perceptron</h1>
+                    <p class="text-xl text-slate-400">The foundational building block of all modern deep learning systems.</p>
+                </header>
+                <div class="prose prose-invert max-w-none text-lg text-slate-300 leading-relaxed mb-10">
+                    <p>To truly understand how artificial neural networks learn, we must first understand the biological system that inspired them, then study the mathematical abstraction of that system, and finally grapple with the critical limitation that gave birth to the deep learning revolution.</p>
+                </div>
+            </section>
+
+            <!-- ═══════ 1.2.1 Biological Neuron ═══════ -->
+            <section id="biological-neuron" class="scroll-mt-24 section-content" data-section="biological-neuron">
+                <h2 class="text-3xl font-bold text-white mb-6 border-b border-slate-800 pb-4">1.2.1 The Biological Neuron: The Inspiration</h2>
+                <p class="text-slate-300 mb-8">The human brain is an extraordinarily complex biological machine, containing approximately 86 billion neurons, interconnected by roughly 100 trillion synapses. To understand the artificial neuron, we must start with the biological counterpart.</p>
+
+                <div class="diagram-wrapper mb-10 text-center">
+                    <button class="diagram-expand-btn" onclick="openModal('modal-biological')" aria-label="Expand diagram">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                        </svg>
+                    </button>
+                    <svg viewBox="0 0 800 300" class="diagram-svg w-full h-auto bg-slate-900/50 rounded-2xl border border-slate-700 shadow-lg">
+                        <text x="400" y="30" fill="#94a3b8" font-family="sans-serif" font-size="14" text-anchor="middle" font-style="italic">Hover over the diagram or cards below to explore</text>
+                        <g class="interactive-part text-blue-500" data-target="card-axon">
+                            <path d="M 300 150 L 600 150" stroke="currentColor" stroke-width="12" stroke-linecap="round" fill="none" />
+                            <rect x="320" y="135" width="60" height="30" rx="10" fill="#60a5fa" />
+                            <rect x="400" y="135" width="60" height="30" rx="10" fill="#60a5fa" />
+                            <rect x="480" y="135" width="60" height="30" rx="10" fill="#60a5fa" />
+                            <text x="450" y="120" fill="#60a5fa" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Axon</text>
+                        </g>
+                        <g class="interactive-part text-rose-500" data-target="card-synapses">
+                            <path d="M 600 150 L 650 100 M 600 150 L 670 150 M 600 150 L 650 200" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none" />
+                            <circle cx="650" cy="100" r="8" fill="#fb7185" />
+                            <circle cx="670" cy="150" r="8" fill="#fb7185" />
+                            <circle cx="650" cy="200" r="8" fill="#fb7185" />
+                            <text x="650" y="80" fill="#fb7185" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Synapses</text>
+                        </g>
+                        <g class="interactive-part text-green-500" data-target="card-dendrites">
+                            <path d="M 200 150 L 120 80 M 150 115 L 90 120 M 200 150 L 100 150 M 200 150 L 130 220 M 150 185 L 90 200" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none" />
+                            <circle cx="120" cy="80" r="5" fill="#4ade80" />
+                            <circle cx="90" cy="120" r="5" fill="#4ade80" />
+                            <circle cx="100" cy="150" r="5" fill="#4ade80" />
+                            <circle cx="130" cy="220" r="5" fill="#4ade80" />
+                            <circle cx="90" cy="200" r="5" fill="#4ade80" />
+                            <text x="110" y="60" fill="#4ade80" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Dendrites</text>
+                        </g>
+                        <g class="interactive-part text-purple-500" data-target="card-soma">
+                            <circle cx="200" cy="150" r="60" fill="currentColor" opacity="0.8" />
+                            <circle cx="200" cy="150" r="20" fill="#d8b4fe" />
+                            <text x="200" y="240" fill="#d8b4fe" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Soma (Cell Body)</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div id="card-dendrites" class="glass-card p-6 rounded-2xl border-t-4 border-green-500 card-highlight relative">
+                        <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><span class="bg-green-500/20 text-green-400 p-1.5 rounded-lg text-sm">1</span> Dendrites <span class="text-slate-400 text-sm font-normal">(Receivers)</span></h3>
+                        <p class="text-sm text-slate-300">Tree-like branching structures that act as the input interface. Their surface contains numerous receptor sites that receive chemical signals (neurotransmitters) from the axon terminals of other neurons.</p>
+                    </div>
+                    <div id="card-soma" class="glass-card p-6 rounded-2xl border-t-4 border-purple-500 card-highlight relative">
+                        <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><span class="bg-purple-500/20 text-purple-400 p-1.5 rounded-lg text-sm">2</span> Soma <span class="text-slate-400 text-sm font-normal">(Cell Body / Processor)</span></h3>
+                        <p class="text-sm text-slate-300">The central processing unit. It integrates all incoming signals. It sums the excitatory and inhibitory potentials. If the cumulative sum exceeds a specific threshold, the neuron "fires."</p>
+                    </div>
+                    <div id="card-axon" class="glass-card p-6 rounded-2xl border-t-4 border-blue-500 card-highlight relative">
+                        <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><span class="bg-blue-500/20 text-blue-400 p-1.5 rounded-lg text-sm">3</span> Axon <span class="text-slate-400 text-sm font-normal">(Transmitter)</span></h3>
+                        <p class="text-sm text-slate-300">A long, slender projection that acts like a biological cable, transmitting electrical impulses (action potentials) away from the cell body toward other neurons.</p>
+                    </div>
+                    <div id="card-synapses" class="glass-card p-6 rounded-2xl border-t-4 border-rose-500 card-highlight relative">
+                        <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><span class="bg-rose-500/20 text-rose-400 p-1.5 rounded-lg text-sm">4</span> Synapses <span class="text-slate-400 text-sm font-normal">(Connections)</span></h3>
+                        <p class="text-sm text-slate-300">Specialized junctions at the end of the axon. The strength of these connections changes over time in a process called <em>synaptic plasticity</em>, which is the biological correlate of learning.</p>
+                    </div>
+                </div>
+                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700 mb-12">
+                    <h4 class="text-lg font-bold text-white mb-2">The All-or-None Principle</h4>
+                    <p class="text-slate-300 text-sm mb-4">Biological neurons constantly receive chemical inputs. If the sum exceeds a threshold, the neuron generates an action potential. If below the threshold, it remains dormant. The magnitude of the spike is always the same; the <em>frequency</em> of firing encodes the signal's strength.</p>
+                    <div class="bg-brand-900/30 border border-brand-500/30 p-4 rounded-lg text-sm text-brand-100">
+                        <strong class="text-brand-400">The Bridge to AI:</strong> Frank Rosenblatt recognized that the brain doesn't need to be precisely replicated. A simplified mathematical model capturing the signal processing logic—weighted inputs, summation, thresholding, and output—could be powerful enough to perform complex computations.
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════ 1.2.2 Artificial Neuron ═══════ -->
+            <section id="artificial-neuron" class="scroll-mt-24 section-content" data-section="artificial-neuron">
+                <h2 class="text-3xl font-bold text-white mb-6 border-b border-slate-800 pb-4">1.2.2 The Artificial Neuron: A Mathematical Abstraction</h2>
+                <p class="text-slate-300 mb-8">In stark contrast to biochemical complexity, the artificial neuron (first proposed by McCulloch and Pitts in 1943) is a breathtakingly simple mathematical function. It distills biological computation into pure arithmetic.</p>
+
+                <div class="diagram-wrapper mb-10 text-center">
+                    <button class="diagram-expand-btn" onclick="openModal('modal-artificial')" aria-label="Expand diagram">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                        </svg>
+                    </button>
+                    <svg viewBox="0 0 800 400" class="diagram-svg w-full h-auto bg-slate-900/50 rounded-2xl border border-slate-700 shadow-lg">
+                        <defs>
+                            <marker id="arrow-weights" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#fbbf24" /></marker>
+                            <marker id="arrow-bias" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" /></marker>
+                            <marker id="arrow-out" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" /></marker>
+                        </defs>
+                        <text x="400" y="30" fill="#94a3b8" font-family="sans-serif" font-size="14" text-anchor="middle" font-style="italic">Hover over the components to understand the math</text>
+                        <g class="interactive-part text-blue-500" data-target="card-inputs">
+                            <circle cx="100" cy="100" r="30" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="3" />
+                            <text x="100" y="107" fill="#60a5fa" font-family="monospace" font-size="24" text-anchor="middle">x₁</text>
+                            <circle cx="100" cy="200" r="30" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="3" />
+                            <text x="100" y="207" fill="#60a5fa" font-family="monospace" font-size="24" text-anchor="middle">x₂</text>
+                            <circle cx="100" cy="300" r="30" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="3" />
+                            <text x="100" y="307" fill="#60a5fa" font-family="monospace" font-size="24" text-anchor="middle">xₙ</text>
+                            <circle cx="100" cy="245" r="3" fill="#60a5fa" /><circle cx="100" cy="255" r="3" fill="#60a5fa" /><circle cx="100" cy="265" r="3" fill="#60a5fa" />
+                            <text x="100" y="360" fill="#60a5fa" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Inputs</text>
+                        </g>
+                        <g class="interactive-part text-amber-500" data-target="card-weights">
+                            <path d="M 140 100 L 360 180" stroke="currentColor" stroke-width="4" marker-end="url(#arrow-weights)" fill="none" />
+                            <text x="250" y="130" fill="#fbbf24" font-family="monospace" font-size="20">w₁</text>
+                            <path d="M 140 200 L 360 200" stroke="currentColor" stroke-width="4" marker-end="url(#arrow-weights)" fill="none" />
+                            <text x="250" y="190" fill="#fbbf24" font-family="monospace" font-size="20">w₂</text>
+                            <path d="M 140 300 L 360 220" stroke="currentColor" stroke-width="4" marker-end="url(#arrow-weights)" fill="none" />
+                            <text x="250" y="275" fill="#fbbf24" font-family="monospace" font-size="20">wₙ</text>
+                            <text x="250" y="330" fill="#fbbf24" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Weights</text>
+                        </g>
+                        <g class="interactive-part text-emerald-500" data-target="card-bias">
+                            <circle cx="420" cy="70" r="25" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="3" />
+                            <text x="420" y="77" fill="#34d399" font-family="monospace" font-size="22" text-anchor="middle">b</text>
+                            <path d="M 420 105 L 420 140" stroke="currentColor" stroke-width="4" marker-end="url(#arrow-bias)" fill="none" />
+                            <text x="490" y="75" fill="#34d399" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Bias</text>
+                        </g>
+                        <g class="interactive-part text-purple-500" data-target="card-sum">
+                            <path d="M 420 120 A 80 80 0 0 0 420 280 L 420 120" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="3" />
+                            <text x="385" y="210" fill="#c084fc" font-family="sans-serif" font-size="32" text-anchor="middle">Σ</text>
+                            <text x="385" y="320" fill="#c084fc" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Sum</text>
+                        </g>
+                        <g class="interactive-part text-rose-500" data-target="card-act">
+                            <path d="M 420 120 A 80 80 0 0 1 420 280 L 420 120" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="3" />
+                            <path d="M 435 210 L 455 210 L 455 180 L 475 180" stroke="#fb7185" stroke-width="3" fill="none" />
+                            <text x="455" y="320" fill="#fb7185" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Activation</text>
+                        </g>
+                        <g class="interactive-part text-slate-400" data-target="card-act">
+                            <path d="M 510 200 L 640 200" stroke="currentColor" stroke-width="4" marker-end="url(#arrow-out)" fill="none" />
+                            <circle cx="680" cy="200" r="30" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="3" />
+                            <text x="680" y="207" fill="#cbd5e1" font-family="monospace" font-size="24" text-anchor="middle">y</text>
+                            <text x="680" y="250" fill="#cbd5e1" font-family="sans-serif" font-size="16" text-anchor="middle" font-weight="bold">Output</text>
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="space-y-6 mb-12">
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div id="card-inputs" class="flex-1 glass-card p-6 rounded-2xl border-l-4 border-blue-500 card-highlight relative">
+                            <h3 class="text-xl font-bold text-brand-400 font-mono mb-2">Inputs (x)</h3>
+                            <p class="text-sm text-slate-300 mb-2">Values <span class="font-mono text-xs bg-slate-800 px-1 rounded">x<sub>1</sub>, x<sub>2</sub>, ..., x<sub>n</sub></span> representing features of the data. E.g., for a loan approval, inputs might be income, credit score, and debt ratio.</p>
+                        </div>
+                        <div id="card-weights" class="flex-1 glass-card p-6 rounded-2xl border-l-4 border-amber-500 card-highlight relative">
+                            <h3 class="text-xl font-bold text-amber-400 font-mono mb-2">Weights (w)</h3>
+                            <p class="text-sm text-slate-300 mb-2">The most critical <strong>learnable parameters</strong>. They correspond to synaptic strengths. Each weight <span class="font-mono text-xs bg-slate-800 px-1 rounded">w<sub>i</sub></span> determines the significance and direction (excitatory + or inhibitory -) of its input.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div id="card-bias" class="flex-1 glass-card p-6 rounded-2xl border-l-4 border-emerald-500 card-highlight relative">
+                            <h3 class="text-xl font-bold text-emerald-400 font-mono mb-2">Bias (b)</h3>
+                            <p class="text-sm text-slate-300 mb-2">An additional learnable parameter acting like the intercept in a linear equation. It shifts the activation function, effectively setting the neuron's threshold for firing.</p>
+                        </div>
+                        <div id="card-sum" class="flex-1 glass-card p-6 rounded-2xl border-l-4 border-purple-500 card-highlight relative">
+                            <h3 class="text-xl font-bold text-purple-400 font-mono mb-2">Summation</h3>
+                            <p class="text-sm text-slate-300 mb-3">The neuron computes the weighted sum of all inputs and adds the bias (the pre-activation or net input).</p>
+                            <div class="bg-slate-900 text-center py-3 rounded-lg border border-slate-700 font-mono text-lg text-purple-300 shadow-inner">z = &Sigma;(w<sub>i</sub>x<sub>i</sub>) + b</div>
+                        </div>
+                    </div>
+                    <div id="card-act" class="glass-card p-6 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border-l-4 border-rose-500 card-highlight relative">
+                        <h3 class="text-xl font-bold text-white mb-3">Activation Function (f) &amp; Output (y)</h3>
+                        <p class="text-sm text-slate-300 mb-4">The raw summation <span class="font-mono text-xs text-purple-300">z</span> is passed through a non-linear activation function to determine if the neuron fires. For the original Rosenblatt perceptron, this is the <strong>Heaviside Step Function</strong>:</p>
+                        <div class="bg-slate-950 text-center py-4 rounded-lg border border-slate-700 font-mono text-lg text-rose-300 shadow-inner">y = f(z) = 1 if z &ge; 0 else 0</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════ 1.2.3 Scaling to ANNs ═══════ -->
+            <section id="ann-scaling" class="scroll-mt-24 section-content" data-section="ann-scaling">
+                <h2 class="text-3xl font-bold text-white mb-6 border-b border-slate-800 pb-4">1.2.3 Scaling to ANNs</h2>
+                <p class="text-slate-300 mb-8">A single perceptron is a powerful mathematical abstraction, but it is limited. When we stack multiple perceptrons into layers—creating a multi-layer perceptron—we unlock the ability to solve <strong>non-linearly separable</strong> problems.</p>
+                <div class="glass-card p-6 rounded-2xl border border-slate-700">
+                    <h4 class="text-lg font-bold text-white mb-4 text-center">From Perceptron to Deep Neural Network</h4>
+                    <div class="flex flex-col items-center gap-2 py-4">
+                        <div class="flex flex-wrap items-center justify-center gap-8 text-sm">
+                            <div class="text-center"><div class="bg-slate-800 px-4 py-2 rounded-lg border border-slate-600">Input Layer</div><span class="text-slate-500 text-xs block mt-1">Raw features</span></div>
+                            <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                            <div class="text-center"><div class="bg-brand-900/50 px-4 py-2 rounded-lg border border-brand-500/50">Hidden Layer 1</div><span class="text-slate-500 text-xs block mt-1">Learns simple features</span></div>
+                            <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                            <div class="text-center"><div class="bg-brand-900/50 px-4 py-2 rounded-lg border border-brand-500/50">Hidden Layer 2</div><span class="text-slate-500 text-xs block mt-1">Learns abstract patterns</span></div>
+                            <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                            <div class="text-center"><div class="bg-slate-800 px-4 py-2 rounded-lg border border-slate-600">Output Layer</div><span class="text-slate-500 text-xs block mt-1">Final prediction</span></div>
+                        </div>
+                        <p class="text-slate-400 text-xs mt-4 italic">Each hidden layer uses non-linear activation functions (ReLU, Sigmoid, Tanh) to learn increasingly complex representations.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════ 1.2.6 XOR Problem ═══════ -->
+            <section id="xor-problem" class="scroll-mt-24 section-content" data-section="xor-problem">
+                <h2 class="text-3xl font-bold text-white mb-6 border-b border-slate-800 pb-4">1.2.6 The XOR Problem: The Achilles' Heel</h2>
+                <p class="text-slate-300 mb-6">In 1969, Marvin Minsky and Seymour Papert pointed out a fundamental flaw in Rosenblatt's Perceptron: <strong>It could not learn the XOR (Exclusive OR) function.</strong></p>
+                <div class="flex flex-col md:flex-row gap-8 mb-10">
+                    <div class="w-full md:w-1/3">
+                        <table class="w-full text-center border-collapse overflow-hidden rounded-lg shadow-lg">
+                            <thead><tr class="bg-slate-800 text-white"><th class="p-3 border border-slate-700">Input x<sub>1</sub></th><th class="p-3 border border-slate-700">Input x<sub>2</sub></th><th class="p-3 border border-slate-700 text-red-400">Output</th></tr></thead>
+                            <tbody class="text-slate-300 font-mono bg-slate-900">
+                                <tr><td class="p-3 border border-slate-800">0</td><td class="p-3 border border-slate-800">0</td><td class="p-3 border border-slate-800 text-blue-400">0</td></tr>
+                                <tr><td class="p-3 border border-slate-800">0</td><td class="p-3 border border-slate-800">1</td><td class="p-3 border border-slate-800 text-red-400">1</td></tr>
+                                <tr><td class="p-3 border border-slate-800">1</td><td class="p-3 border border-slate-800">0</td><td class="p-3 border border-slate-800 text-red-400">1</td></tr>
+                                <tr><td class="p-3 border border-slate-800">1</td><td class="p-3 border border-slate-800">1</td><td class="p-3 border border-slate-800 text-blue-400">0</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="w-full md:w-2/3 flex items-center justify-center">
+                        <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700 text-center w-full">
+                            <p class="text-slate-300 text-sm mb-3">XOR is not <strong class="text-red-400">linearly separable</strong> — you cannot draw a single straight line to separate the 0s from the 1s.</p>
+                            <div class="grid grid-cols-2 gap-2 max-w-[200px] mx-auto">
+                                <div class="bg-blue-500/20 p-4 rounded-lg border border-blue-500/30 text-blue-300 font-mono text-lg">0</div>
+                                <div class="bg-red-500/20 p-4 rounded-lg border border-red-500/30 text-red-300 font-mono text-lg">1</div>
+                                <div class="bg-red-500/20 p-4 rounded-lg border border-red-500/30 text-red-300 font-mono text-lg">1</div>
+                                <div class="bg-blue-500/20 p-4 rounded-lg border border-blue-500/30 text-blue-300 font-mono text-lg">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-l-4 border-red-500 bg-red-900/10 p-6 rounded-r-2xl mb-12">
+                    <h4 class="text-lg font-bold text-red-400 mb-4">Mathematical Proof of Impossibility</h4>
+                    <p class="text-sm text-slate-300 mb-4">Attempting to solve the linear inequalities <span class="font-mono text-xs">w<sub>1</sub>x<sub>1</sub> + w<sub>2</sub>x<sub>2</sub> + b</span> for XOR leads to a strict contradiction:</p>
+                    <ol class="list-decimal list-inside text-sm text-slate-400 space-y-2 font-mono mb-4 bg-slate-950 p-4 rounded-lg">
+                        <li>For (0,0) &rarr; 0: &nbsp;&nbsp;&nbsp; <b>b &lt; 0</b></li>
+                        <li>For (1,1) &rarr; 0: &nbsp;&nbsp;&nbsp; <b>w<sub>1</sub> + w<sub>2</sub> + b &lt; 0</b></li>
+                        <li>For (1,0) &rarr; 1: &nbsp;&nbsp;&nbsp; <b>w<sub>1</sub> + b &ge; 0</b> &nbsp;&nbsp;&rarr; w<sub>1</sub> &ge; -b</li>
+                        <li>For (0,1) &rarr; 1: &nbsp;&nbsp;&nbsp; <b>w<sub>2</sub> + b &ge; 0</b> &nbsp;&nbsp;&rarr; w<sub>2</sub> &ge; -b</li>
+                    </ol>
+                    <p class="text-sm text-slate-300">If we add (3) and (4) together, we get <span class="font-mono text-amber-300">w<sub>1</sub> + w<sub>2</sub> &ge; -2b</span>. Because <span class="font-mono">b</span> is negative (from eq 1), <span class="font-mono">-2b</span> is a large positive number. However, from eq 2 we need <span class="font-mono text-amber-300">w<sub>1</sub> + w<sub>2</sub> &lt; -b</span>. <br /><br /><strong>Conclusion:</strong> We cannot have a sum that is simultaneously greater than a larger positive number and less than a smaller positive number. No weights can exist to solve this.</p>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-6">1.2.7 How ANNs Solve XOR: The Power of Depth</h3>
+                <p class="text-slate-300 mb-6">By adding a hidden layer, the network performs function composition. Geometrically, the hidden layer <strong>warps the input plane</strong> or lifts the data into a higher-dimensional space where the points suddenly become linearly separable.</p>
+                <div class="glass-card p-6 rounded-2xl mb-12">
+                    <h4 class="text-lg font-bold text-white mb-4">Solving XOR with a 2-Neuron Hidden Layer</h4>
+                    <p class="text-sm text-slate-400 mb-6">We can combine logic gates! We set Hidden Neuron 1 to learn NAND, Hidden Neuron 2 to learn OR, and the Output Neuron to learn AND. <span class="font-mono text-brand-300 bg-slate-900 px-2 py-1 rounded ml-2">XOR = OR &and; NAND</span></p>
+                    <div class="overflow-x-auto rounded-lg border border-slate-700">
+                        <table class="w-full text-center text-sm text-slate-300 whitespace-nowrap">
+                            <thead class="bg-slate-800 text-slate-200">
+                                <tr><th class="p-3">Input (x<sub>1</sub>, x<sub>2</sub>)</th><th class="p-3 border-l border-slate-700">h<sub>1</sub> (NAND)</th><th class="p-3 border-l border-slate-700">h<sub>2</sub> (OR)</th><th class="p-3 border-l border-slate-700 text-brand-400 font-bold">y = (h<sub>1</sub> &and; h<sub>2</sub>)</th><th class="p-3 border-l border-slate-700">Result</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700/50 bg-slate-900">
+                                <tr class="hover:bg-slate-800/50"><td class="p-3 font-mono">(0, 0)</td><td class="p-3 border-l border-slate-700">1</td><td class="p-3 border-l border-slate-700">0</td><td class="p-3 border-l border-slate-700 text-brand-400 font-bold">0</td><td class="p-3 border-l border-slate-700">0</td></tr>
+                                <tr class="hover:bg-slate-800/50"><td class="p-3 font-mono">(0, 1)</td><td class="p-3 border-l border-slate-700">1</td><td class="p-3 border-l border-slate-700">1</td><td class="p-3 border-l border-slate-700 text-brand-400 font-bold">1</td><td class="p-3 border-l border-slate-700">1</td></tr>
+                                <tr class="hover:bg-slate-800/50"><td class="p-3 font-mono">(1, 0)</td><td class="p-3 border-l border-slate-700">1</td><td class="p-3 border-l border-slate-700">1</td><td class="p-3 border-l border-slate-700 text-brand-400 font-bold">1</td><td class="p-3 border-l border-slate-700">1</td></tr>
+                                <tr class="hover:bg-slate-800/50"><td class="p-3 font-mono">(1, 1)</td><td class="p-3 border-l border-slate-700">0</td><td class="p-3 border-l border-slate-700">1</td><td class="p-3 border-l border-slate-700 text-brand-400 font-bold">0</td><td class="p-3 border-l border-slate-700">0</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════ 1.2 Summary ═══════ -->
+            <section id="perceptron-summary" class="scroll-mt-24 section-content" data-section="perceptron-summary">
+                <h2 class="text-3xl font-bold text-white mb-8 border-b border-slate-800 pb-4">1.2 Concept Summary</h2>
+                <div class="overflow-x-auto rounded-xl border border-slate-700 shadow-xl">
+                    <table class="w-full text-left text-sm text-slate-400">
+                        <thead class="bg-slate-800 text-slate-200">
+                            <tr><th class="p-4 font-semibold w-1/4">Concept</th><th class="p-4 font-semibold border-l border-slate-700">Description</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700/50 bg-slate-900/50">
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-white">Biological Neuron</td><td class="p-4 border-l border-slate-700">Receives signals via dendrites, processes them in the soma (thresholding), transmits via axon through synapses.</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-white">Artificial Neuron</td><td class="p-4 border-l border-slate-700">A mathematical function: <span class="font-mono text-xs text-brand-300">y = f(&Sigma;(w<sub>i</sub>x<sub>i</sub>) + b)</span> where w are weights, b is bias, and f is activation.</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-white">Perceptron</td><td class="p-4 border-l border-slate-700">A single-layer ANN using a step activation function. It can only classify linearly separable data.</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-white">Weights &amp; Biases</td><td class="p-4 border-l border-slate-700">Weights scale inputs (synaptic strength); biases shift the activation threshold. Both are learned during training.</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-white">ANN (Multi-layer)</td><td class="p-4 border-l border-slate-700">A stack of layers of artificial neurons. Non-linear activations allow it to approximate complex, non-linear functions.</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-red-300">XOR Problem</td><td class="p-4 border-l border-slate-700">A logical operation where outputs cannot be separated by a single line. Proved mathematically unsolvable by a single perceptron.</td></tr>
+                            <tr class="hover:bg-slate-800/50"><td class="p-4 font-medium text-brand-300">Solution to XOR</td><td class="p-4 border-l border-slate-700">By adding hidden layers, the ANN warps the input space, making the data linearly separable at the output layer. Demonstrates the absolute need for depth.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ─── Section Navigation Buttons ─── -->
+            <div class="section-nav" id="sectionNav">
+                <button id="prevSectionBtn" disabled>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    Previous
+                </button>
+                <span class="nav-indicator" id="sectionIndicator">1 / 1</span>
+                <button id="nextSectionBtn">
+                    Next
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ─── MODALS ─── -->
+    <div id="modal-biological" class="modal-container" onclick="if(event.target===this) closeModal('modal-biological')">
+        <div class="modal-content">
+            <span class="modal-title">Biological Neuron</span>
+            <button class="modal-close-btn" onclick="closeModal('modal-biological')" aria-label="Close modal">✕</button>
+            <div class="modal-svg-container"></div>
+        </div>
+    </div>
+    <div id="modal-artificial" class="modal-container" onclick="if(event.target===this) closeModal('modal-artificial')">
+        <div class="modal-content">
+            <span class="modal-title">Artificial Neuron</span>
+            <button class="modal-close-btn" onclick="closeModal('modal-artificial')" aria-label="Close modal">✕</button>
+            <div class="modal-svg-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // ── DOM refs ──
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+        const mobileHeader = document.getElementById('mobileHeader');
+        let isSidebarOpen = true;
+
+        // ── Helper: update toggle button position ──
+        function updateTogglePosition() {
+            const isMobile = window.innerWidth < 768;
+            const openLeft = isMobile ? '280px' : '256px';
+            const closedLeft = '0px';
+            sidebarToggle.style.left = isSidebarOpen ? openLeft : closedLeft;
+            if (isSidebarOpen) {
+                sidebarToggle.classList.remove('closed');
+                sidebarToggle.classList.remove('sidebar-closed');
+                if (isMobile) sidebarToggle.classList.add('sidebar-open-mobile');
+            } else {
+                sidebarToggle.classList.add('closed');
+                sidebarToggle.classList.add('sidebar-closed');
+                if (isMobile) sidebarToggle.classList.remove('sidebar-open-mobile');
+            }
+            sidebarToggle.setAttribute('aria-label', isSidebarOpen ? 'Close sidebar' : 'Open sidebar');
+        }
+
+        // ── Main toggle function ──
+        function toggleSidebar() {
+            isSidebarOpen = !isSidebarOpen;
+            sidebar.classList.toggle('sidebar-closed', !isSidebarOpen);
+            if (window.innerWidth < 768) {
+                if (isSidebarOpen) {
+                    sidebarBackdrop.classList.add('active');
+                    mobileHeader.classList.add('shifted');
+                } else {
+                    sidebarBackdrop.classList.remove('active');
+                    mobileHeader.classList.remove('shifted');
+                }
+            }
+            updateTogglePosition();
+        }
+
+        function closeSidebarMobile() {
+            if (window.innerWidth < 768 && isSidebarOpen) {
+                toggleSidebar();
+            }
+        }
+
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                if (window.innerWidth < 768) {
+                    toggleSidebar();
+                }
+            });
+        }
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 768 && isSidebarOpen) {
+                    toggleSidebar();
+                }
+            });
+        });
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+
+        // ── Sidebar accordion ──
+        document.querySelectorAll('.section-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                const targetId = this.dataset.target;
+                const children = document.getElementById(targetId);
+                if (!children) return;
+                this.classList.toggle('open');
+                children.classList.toggle('open');
+                e.stopPropagation();
+            });
+        });
+
+        // ── Interactive Diagram Logic ──
+        function attachDiagramEvents(container) {
+            const parts = container.querySelectorAll('.interactive-part');
+            const cards = container.querySelectorAll('.card-highlight');
+
+            const toggleHighlight = (targetId, isActive, containerSvg, scope = document) => {
+                const card = document.getElementById(targetId);
+                if (card) {
+                    if (isActive) card.classList.add('active-card');
+                    else card.classList.remove('active-card');
+                }
+                let container = containerSvg;
+                if (!container) {
+                    const targetPart = scope.querySelector(`[data-target="${targetId}"]`);
+                    if (targetPart) container = targetPart.closest('svg');
+                }
+                if (container) {
+                    const allParts = container.querySelectorAll('.interactive-part');
+                    allParts.forEach(p => {
+                        if (p.dataset.target === targetId) {
+                            p.classList.add('active-svg');
+                            p.style.opacity = '1';
+                        } else {
+                            p.style.opacity = '0.3';
+                        }
+                    });
+                }
+            };
+
+            parts.forEach(part => {
+                part.addEventListener('mouseenter', (e) => {
+                    const svg = e.target.closest('svg');
+                    toggleHighlight(part.dataset.target, true, svg, container);
+                });
+                part.addEventListener('mouseleave', (e) => {
+                    const svg = e.target.closest('svg');
+                    toggleHighlight(part.dataset.target, false, svg, container);
+                });
+            });
+
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => toggleHighlight(card.id, true, null, container));
+                card.addEventListener('mouseleave', () => toggleHighlight(card.id, false, null, container));
+            });
+        }
+
+        // ── Modal Logic ──
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const svgContainer = modal.querySelector('.modal-svg-container');
+            svgContainer.innerHTML = '';
+            let originalSvg;
+            if (modalId === 'modal-biological') {
+                originalSvg = document.querySelector('#biological-neuron .diagram-svg');
+            } else if (modalId === 'modal-artificial') {
+                originalSvg = document.querySelector('#artificial-neuron .diagram-svg');
+            }
+            if (originalSvg) {
+                const clone = originalSvg.cloneNode(true);
+                clone.removeAttribute('width');
+                clone.removeAttribute('height');
+                clone.style.width = '100%';
+                clone.style.height = '100%';
+                clone.style.maxWidth = '100%';
+                clone.style.maxHeight = '100%';
+                clone.style.objectFit = 'contain';
+                svgContainer.appendChild(clone);
+                attachDiagramEvents(modal);
+            } else {
+                svgContainer.innerHTML = '<p class="text-slate-400 text-sm">Diagram not found.</p>';
+            }
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            const svgContainer = modal.querySelector('.modal-svg-container');
+            svgContainer.innerHTML = '';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-container').forEach(modal => {
+                    if (modal.style.display === 'flex') {
+                        closeModal(modal.id);
+                    }
+                });
+            }
+        });
+
+        // ── Section View Toggle & Navigation ──
+        // Define ordered list of section IDs (in the order they appear in the sidebar)
+        const sectionOrder = [
+            'intro',
+            'history',
+            'applications',
+            'concepts',
+            'comparison',
+            'summary',
+            'perceptron-intro',
+            'biological-neuron',
+            'artificial-neuron',
+            'ann-scaling',
+            'xor-problem',
+            'perceptron-summary'
+        ];
+
+        let viewMode = 'full';
+        let activeSectionId = 'intro';
+        const toggleTrack = document.getElementById('toggleTrack');
+        const toggleLabel = document.getElementById('toggleLabel');
+        const toggleLabel2 = document.getElementById('toggleLabel2');
+        const allSections = document.querySelectorAll('.section-content');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        // Navigation buttons
+        const prevBtn = document.getElementById('prevSectionBtn');
+        const nextBtn = document.getElementById('nextSectionBtn');
+        const sectionIndicator = document.getElementById('sectionIndicator');
+        const sectionNav = document.getElementById('sectionNav');
+
+        function updateActiveNavLink(sectionId) {
+            navLinks.forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === '#' + sectionId) {
+                    a.classList.add('active');
+                }
+            });
+        }
+
+        function getVisibleSectionId() {
+            let currentId = 'intro';
+            const sections = document.querySelectorAll('section[id]');
+            sections.forEach(s => {
+                const top = s.offsetTop - 180;
+                if (window.scrollY >= top) currentId = s.getAttribute('id');
+            });
+            return currentId;
+        }
+
+        function getCurrentIndex() {
+            return sectionOrder.indexOf(activeSectionId);
+        }
+
+        function updateNavButtons() {
+            const idx = getCurrentIndex();
+            prevBtn.disabled = (idx <= 0);
+            nextBtn.disabled = (idx >= sectionOrder.length - 1);
+            sectionIndicator.textContent = `${idx + 1} / ${sectionOrder.length}`;
+        }
+
+        function goToSection(id) {
+            if (!id || !sectionOrder.includes(id)) return;
+            activeSectionId = id;
+            if (viewMode === 'section') {
+                renderView();
+            } else {
+                // In full mode, just scroll to the section
+                const el = document.getElementById(id);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                updateActiveNavLink(id);
+            }
+        }
+
+        function goToPrevious() {
+            const idx = getCurrentIndex();
+            if (idx > 0) {
+                goToSection(sectionOrder[idx - 1]);
+            }
+        }
+
+        function goToNext() {
+            const idx = getCurrentIndex();
+            if (idx < sectionOrder.length - 1) {
+                goToSection(sectionOrder[idx + 1]);
+            }
+        }
+
+        prevBtn.addEventListener('click', goToPrevious);
+        nextBtn.addEventListener('click', goToNext);
+
+        function renderView() {
+            if (viewMode === 'full') {
+                allSections.forEach(el => { el.style.display = 'block'; });
+                toggleTrack.classList.remove('active');
+                toggleLabel.textContent = 'Full';
+                toggleLabel2.textContent = 'Section';
+                sectionNav.classList.remove('visible');
+            } else {
+                allSections.forEach(el => {
+                    el.style.display = (el.dataset.section === activeSectionId) ? 'block' : 'none';
+                });
+                toggleTrack.classList.add('active');
+                toggleLabel.textContent = 'Section';
+                toggleLabel2.textContent = 'Full';
+                updateActiveNavLink(activeSectionId);
+                const activeEl = document.getElementById(activeSectionId);
+                if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                sectionNav.classList.add('visible');
+                updateNavButtons();
+            }
+        }
+
+        toggleTrack.addEventListener('click', () => {
+            if (viewMode === 'full') {
+                viewMode = 'section';
+                activeSectionId = getVisibleSectionId();
+                renderView();
+            } else {
+                viewMode = 'full';
+                renderView();
+                const currentId = getVisibleSectionId();
+                updateActiveNavLink(currentId);
+                activeSectionId = currentId;
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (href && href.startsWith('#')) {
+                    const targetId = href.substring(1);
+                    if (viewMode === 'section') {
+                        e.preventDefault();
+                        activeSectionId = targetId;
+                        renderView();
+                    } else {
+                        // In full mode, allow default navigation; we'll update after scroll
+                        setTimeout(() => {
+                            const currentId = getVisibleSectionId();
+                            updateActiveNavLink(currentId);
+                            activeSectionId = currentId;
+                        }, 100);
+                    }
+                }
+            });
+        });
+
+        window.addEventListener('scroll', () => {
+            if (viewMode === 'full') {
+                const currentId = getVisibleSectionId();
+                if (currentId) {
+                    updateActiveNavLink(currentId);
+                    activeSectionId = currentId;
+                }
+            }
+        });
+
+        // ── Handle resize ──
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                const isMobile = window.innerWidth < 768;
+                if (!isMobile) {
+                    sidebarToggle.classList.remove('sidebar-open-mobile');
+                    if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+                    if (mobileHeader) mobileHeader.classList.remove('shifted');
+                } else {
+                    if (isSidebarOpen) {
+                        if (sidebarBackdrop) sidebarBackdrop.classList.add('active');
+                        if (mobileHeader) mobileHeader.classList.add('shifted');
+                        sidebarToggle.classList.add('sidebar-open-mobile');
+                    } else {
+                        if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+                        if (mobileHeader) mobileHeader.classList.remove('shifted');
+                        sidebarToggle.classList.remove('sidebar-open-mobile');
+                    }
+                }
+                updateTogglePosition();
+            }, 150);
+        });
+
+        // ── Init ──
+        document.addEventListener('DOMContentLoaded', () => {
+            attachDiagramEvents(document);
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                isSidebarOpen = false;
+                sidebar.classList.add('sidebar-closed');
+                sidebarToggle.classList.add('closed');
+                sidebarToggle.classList.add('sidebar-closed');
+                sidebarToggle.classList.remove('sidebar-open-mobile');
+                if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+                if (mobileHeader) mobileHeader.classList.remove('shifted');
+            } else {
+                isSidebarOpen = true;
+                sidebar.classList.remove('sidebar-closed');
+                sidebarToggle.classList.remove('closed');
+                sidebarToggle.classList.remove('sidebar-closed');
+            }
+            updateTogglePosition();
+
+            renderView();
+            if (viewMode === 'full') {
+                const currentId = getVisibleSectionId();
+                updateActiveNavLink(currentId);
+                activeSectionId = currentId;
+            } else {
+                // Ensure nav buttons are updated
+                updateNavButtons();
+            }
+        });
+    </script>
+</body>
+</html>
