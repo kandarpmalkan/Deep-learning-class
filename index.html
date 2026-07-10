@@ -756,6 +756,65 @@
                 justify-content: center;
             }
         }
+
+        /* ── Settings modal (custom) ── */
+        #settingsModal .modal-content {
+            max-width: 420px;
+            height: auto;
+            padding: 1.5rem 1.5rem 2rem;
+        }
+        #settingsModal .modal-settings-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        .settings-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .settings-toggle-row span {
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+        .settings-toggle-track {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: #1e293b;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+        .settings-toggle-track.active {
+            background: rgba(139, 92, 246, 0.6);
+        }
+        .settings-toggle-track .settings-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            background: #64748b;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .settings-toggle-track.active .settings-thumb {
+            left: 24px;
+            background: #8b5cf6;
+        }
+        .settings-desc {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            text-align: center;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body class="flex flex-col md:flex-row min-h-screen">
@@ -790,8 +849,8 @@
     </div>
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="bg-slate-900 border-r border-slate-800 z-40">
-        <div class="p-6 h-full overflow-y-auto">
+    <aside id="sidebar" class="bg-slate-900 border-r border-slate-800 z-40 relative">
+        <div class="p-6 h-full overflow-y-auto pb-20">
             <h2 class="text-2xl font-bold text-white mb-2 tracking-tight">DL course</h2>
             <p class="text-sm text-brand-500 font-medium mb-6">Unit 1: Foundations</p>
             <nav class="space-y-1" id="sidebar-nav">
@@ -833,6 +892,17 @@
                 </div>
 
             </nav>
+        </div>
+
+        <!-- Settings Button at bottom of sidebar -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-800 bg-slate-900">
+            <button id="settingsBtn" class="w-full flex items-center justify-center gap-2 text-slate-400 hover:text-white py-2 rounded-lg hover:bg-slate-800 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Settings
+            </button>
         </div>
     </aside>
 
@@ -899,7 +969,7 @@
                                 <div class="scientist-trigger">
                                     <img src="https://placehold.co/100x100/1e293b/60a5fa?text=FR" alt="Frank Rosenblatt" class="thumb" />
                                     <div class="popup">
-                                        <img src="images/Frank_Rosenblatt.jpg" alt="Frank Rosenblatt" />
+                                        <img src="images/frank_rosenblatt.jpg" alt="Frank Rosenblatt" />
                                         <div class="name">Frank Rosenblatt</div>
                                         <div class="role">Perceptron Pioneer</div>
                                     </div>
@@ -1568,6 +1638,26 @@
         </div>
     </div>
 
+    <!-- ─── Settings Modal ─── -->
+    <div id="settingsModal" class="modal-container" onclick="if(event.target===this) closeSettingsModal()">
+        <div class="modal-content" style="max-width:420px; height:auto; padding:1.5rem 1.5rem 2rem;">
+            <span class="modal-title">Settings</span>
+            <button class="modal-close-btn" onclick="closeSettingsModal()" aria-label="Close settings">✕</button>
+            <div class="modal-settings-body">
+                <div class="settings-toggle-row">
+                    <span>Always show highlights</span>
+                    <div class="settings-toggle-track" id="settingsToggleTrack">
+                        <div class="settings-thumb" id="settingsThumb"></div>
+                    </div>
+                </div>
+                <p class="settings-desc">
+                    When <strong>ON</strong>, all diagram parts are highlighted. <br>
+                    When <strong>OFF</strong>, only the hovered part lights up.
+                </p>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ── DOM refs ──
         const sidebar = document.getElementById('sidebar');
@@ -1575,6 +1665,11 @@
         const sidebarBackdrop = document.getElementById('sidebar-backdrop');
         const mobileHeader = document.getElementById('mobileHeader');
         let isSidebarOpen = true;
+
+        // ── Settings state ──
+        let highlightAlways = true; // default: ON
+        const settingsToggleTrack = document.getElementById('settingsToggleTrack');
+        const settingsThumb = document.getElementById('settingsThumb');
 
         // ── Helper: update toggle button position ──
         function updateTogglePosition() {
@@ -1666,31 +1761,171 @@
                 if (container) {
                     const allParts = container.querySelectorAll('.interactive-part');
                     allParts.forEach(p => {
-                        if (p.dataset.target === targetId) {
+                        // When highlightAlways is true, we keep all parts bright (opacity 1, active-svg applied)
+                        // and we only add extra glow to hovered one, but not dim others.
+                        if (highlightAlways) {
+                            // All parts stay active and opaque
                             p.classList.add('active-svg');
                             p.style.opacity = '1';
+                            // But we also highlight the hovered one (already active)
+                            if (p.dataset.target === targetId && isActive) {
+                                // Extra glow? We already have active-svg, but we can add a stronger effect if needed
+                                // We'll just keep as is.
+                            }
+                            // We don't dim others.
                         } else {
-                            p.style.opacity = '0.3';
+                            // Normal mode: dim others, highlight the hovered one
+                            if (p.dataset.target === targetId) {
+                                p.classList.add('active-svg');
+                                p.style.opacity = '1';
+                            } else {
+                                p.classList.remove('active-svg');
+                                p.style.opacity = '0.3';
+                            }
                         }
                     });
                 }
             };
 
+            // Override mouseenter and mouseleave to respect highlightAlways
             parts.forEach(part => {
                 part.addEventListener('mouseenter', (e) => {
                     const svg = e.target.closest('svg');
+                    // In highlightAlways mode, we still want to maybe add extra effect, but we keep all bright.
+                    // We'll just call toggleHighlight with isActive true.
                     toggleHighlight(part.dataset.target, true, svg, container);
                 });
                 part.addEventListener('mouseleave', (e) => {
                     const svg = e.target.closest('svg');
-                    toggleHighlight(part.dataset.target, false, svg, container);
+                    // When leaving, if highlightAlways is true, we want to revert to all bright (no dimming)
+                    // but we also need to ensure all parts are active and opaque.
+                    if (highlightAlways) {
+                        // Reapply all-bright state
+                        const allParts = svg ? svg.querySelectorAll('.interactive-part') : container.querySelectorAll(
+                            '.interactive-part');
+                        allParts.forEach(p => {
+                            p.classList.add('active-svg');
+                            p.style.opacity = '1';
+                        });
+                    } else {
+                        // Normal: remove highlight from this part (but keep others dimmed)
+                        // Actually when we leave, we want to revert to default (all dimmed except maybe none)
+                        // But we want only the hovered one to be bright, so on leave we dim all.
+                        const allParts = svg ? svg.querySelectorAll('.interactive-part') : container.querySelectorAll(
+                            '.interactive-part');
+                        allParts.forEach(p => {
+                            p.classList.remove('active-svg');
+                            p.style.opacity = '0.3';
+                        });
+                        // Also remove active-card from cards
+                        const cards = container.querySelectorAll('.card-highlight');
+                        cards.forEach(c => c.classList.remove('active-card'));
+                    }
                 });
             });
 
+            // For cards: we want similar behavior
             cards.forEach(card => {
-                card.addEventListener('mouseenter', () => toggleHighlight(card.id, true, null, container));
-                card.addEventListener('mouseleave', () => toggleHighlight(card.id, false, null, container));
+                card.addEventListener('mouseenter', () => {
+                    // Highlight the card and its corresponding diagram part
+                    const targetId = card.id;
+                    // Find the part with data-target matching card id
+                    const part = container.querySelector(`.interactive-part[data-target="${targetId}"]`);
+                    if (part) {
+                        // Trigger hover effect
+                        const svg = part.closest('svg');
+                        toggleHighlight(targetId, true, svg, container);
+                    }
+                    card.classList.add('active-card');
+                });
+                card.addEventListener('mouseleave', () => {
+                    const targetId = card.id;
+                    if (highlightAlways) {
+                        // Reapply all bright
+                        const allParts = container.querySelectorAll('.interactive-part');
+                        allParts.forEach(p => {
+                            p.classList.add('active-svg');
+                            p.style.opacity = '1';
+                        });
+                        card.classList.remove('active-card');
+                    } else {
+                        // Dim all
+                        const allParts = container.querySelectorAll('.interactive-part');
+                        allParts.forEach(p => {
+                            p.classList.remove('active-svg');
+                            p.style.opacity = '0.3';
+                        });
+                        card.classList.remove('active-card');
+                    }
+                });
             });
+
+            // Initial application of highlight state
+            applyHighlightState(container);
+        }
+
+        // ── Apply highlight state to a container (or all) ──
+        function applyHighlightState(container) {
+            const parts = container ? container.querySelectorAll('.interactive-part') : document.querySelectorAll(
+                '.interactive-part');
+            if (highlightAlways) {
+                parts.forEach(p => {
+                    p.classList.add('active-svg');
+                    p.style.opacity = '1';
+                });
+            } else {
+                parts.forEach(p => {
+                    p.classList.remove('active-svg');
+                    p.style.opacity = '0.3';
+                });
+            }
+            // Also handle cards: remove active-card when off, add when on? We'll keep cards neutral.
+            const cards = container ? container.querySelectorAll('.card-highlight') : document.querySelectorAll(
+                '.card-highlight');
+            cards.forEach(c => c.classList.remove('active-card'));
+            // If highlightAlways is true, we don't automatically highlight cards, only parts.
+        }
+
+        // ── Settings toggle ──
+        function updateSettingsUI() {
+            if (highlightAlways) {
+                settingsToggleTrack.classList.add('active');
+                settingsThumb.style.left = '24px';
+            } else {
+                settingsToggleTrack.classList.remove('active');
+                settingsThumb.style.left = '2px';
+            }
+        }
+
+        function toggleHighlightAlways() {
+            highlightAlways = !highlightAlways;
+            updateSettingsUI();
+            // Apply to all diagrams (main and modals)
+            applyHighlightState(null);
+            // Also, if any modal is open, we should update it too
+            document.querySelectorAll('.modal-container').forEach(modal => {
+                if (modal.style.display === 'flex') {
+                    const svgContainer = modal.querySelector('.modal-svg-container');
+                    if (svgContainer) {
+                        applyHighlightState(svgContainer);
+                    }
+                }
+            });
+        }
+
+        settingsToggleTrack.addEventListener('click', toggleHighlightAlways);
+
+        // ── Settings modal open/close ──
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            document.getElementById('settingsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            // Update UI to match current state
+            updateSettingsUI();
+        });
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'none';
+            document.body.style.overflow = '';
         }
 
         // ── Modal Logic ──
@@ -1715,6 +1950,8 @@
                 clone.style.objectFit = 'contain';
                 svgContainer.appendChild(clone);
                 attachDiagramEvents(modal);
+                // Apply highlight state to the cloned diagram
+                applyHighlightState(svgContainer);
             } else {
                 svgContainer.innerHTML = '<p class="text-slate-400 text-sm">Diagram not found.</p>';
             }
@@ -1734,14 +1971,18 @@
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal-container').forEach(modal => {
                     if (modal.style.display === 'flex') {
-                        closeModal(modal.id);
+                        const modalId = modal.id;
+                        if (modalId === 'settingsModal') {
+                            closeSettingsModal();
+                        } else {
+                            closeModal(modalId);
+                        }
                     }
                 });
             }
         });
 
         // ── Section View Toggle & Navigation ──
-        // Define ordered list of section IDs (in the order they appear in the sidebar)
         const sectionOrder = [
             'intro',
             'history',
@@ -1765,7 +2006,6 @@
         const allSections = document.querySelectorAll('.section-content');
         const navLinks = document.querySelectorAll('.nav-link');
 
-        // Navigation buttons
         const prevBtn = document.getElementById('prevSectionBtn');
         const nextBtn = document.getElementById('nextSectionBtn');
         const sectionIndicator = document.getElementById('sectionIndicator');
@@ -1807,7 +2047,6 @@
             if (viewMode === 'section') {
                 renderView();
             } else {
-                // In full mode, just scroll to the section
                 const el = document.getElementById(id);
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 updateActiveNavLink(id);
@@ -1877,7 +2116,6 @@
                         activeSectionId = targetId;
                         renderView();
                     } else {
-                        // In full mode, allow default navigation; we'll update after scroll
                         setTimeout(() => {
                             const currentId = getVisibleSectionId();
                             updateActiveNavLink(currentId);
@@ -1925,7 +2163,14 @@
 
         // ── Init ──
         document.addEventListener('DOMContentLoaded', () => {
+            // Set initial highlight state to ON
+            highlightAlways = true;
+            updateSettingsUI();
+
             attachDiagramEvents(document);
+            // Apply initial highlight to all parts
+            applyHighlightState(null);
+
             const isMobile = window.innerWidth < 768;
             if (isMobile) {
                 isSidebarOpen = false;
@@ -1949,7 +2194,6 @@
                 updateActiveNavLink(currentId);
                 activeSectionId = currentId;
             } else {
-                // Ensure nav buttons are updated
                 updateNavButtons();
             }
         });
