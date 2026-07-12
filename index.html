@@ -6,6 +6,8 @@
     <title>Unit 1: Foundations of Deep Learning</title>
     <script src="https://cdn.tailwindcss.com">
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <script>
         tailwind.config = {
@@ -424,6 +426,14 @@
             border-radius: 0.5rem;
             object-fit: contain;
         }
+        .modal-container .modal-content .modal-svg-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 0.5rem;
+            background: #0f172a;
+        }
         .modal-container .modal-close-btn {
             position: absolute;
             top: 0.75rem;
@@ -468,7 +478,7 @@
             border: 1px solid rgba(148, 163, 184, 0.1);
         }
 
-        /* ── Expand button on diagrams ── */
+        /* ── Expand button on diagrams and chart ── */
         .diagram-expand-btn {
             position: absolute;
             top: 0.75rem;
@@ -814,6 +824,26 @@
             font-size: 0.85rem;
             text-align: center;
             line-height: 1.5;
+        }
+
+        /* ── Chart container ── */
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 1rem;
+            padding: 1rem;
+        }
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 250px;
+                padding: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -1267,7 +1297,32 @@
                         </div>
                     </div>
                 </div>
-                <div class="glass-card rounded-2xl p-6 md:p-8">
+
+                <!-- ─── ML vs DL Performance Graph ─── -->
+                <div class="diagram-wrapper mt-8">
+                    <button class="diagram-expand-btn" onclick="openModal('modal-chart')" aria-label="Expand chart">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                        </svg>
+                    </button>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    <!-- Custom Legend -->
+                    <div class="flex justify-center mt-4 space-x-6">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-[#f97316] mr-2 shadow-sm"></div>
+                            <span class="text-sm font-medium text-slate-300">Traditional ML</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-[#3b82f6] mr-2 shadow-sm"></div>
+                            <span class="text-sm font-medium text-slate-300">Deep Learning</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Practical Decision Framework (existing) -->
+                <div class="glass-card rounded-2xl p-6 md:p-8 mt-10">
                     <h3 class="text-xl font-bold text-white mb-6">Practical Decision Framework</h3>
                     <div class="space-y-4 font-mono text-sm">
                         <div class="flex items-center gap-3">
@@ -1638,6 +1693,17 @@
         </div>
     </div>
 
+    <!-- ─── Chart Modal ─── -->
+    <div id="modal-chart" class="modal-container" onclick="if(event.target===this) closeModal('modal-chart')">
+        <div class="modal-content">
+            <span class="modal-title">ML vs DL Performance</span>
+            <button class="modal-close-btn" onclick="closeModal('modal-chart')" aria-label="Close modal">✕</button>
+            <div class="modal-svg-container">
+                <canvas id="modalChartCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- ─── Settings Modal ─── -->
     <div id="settingsModal" class="modal-container" onclick="if(event.target===this) closeSettingsModal()">
         <div class="modal-content" style="max-width:420px; height:auto; padding:1.5rem 1.5rem 2rem;">
@@ -1761,20 +1827,10 @@
                 if (container) {
                     const allParts = container.querySelectorAll('.interactive-part');
                     allParts.forEach(p => {
-                        // When highlightAlways is true, we keep all parts bright (opacity 1, active-svg applied)
-                        // and we only add extra glow to hovered one, but not dim others.
                         if (highlightAlways) {
-                            // All parts stay active and opaque
                             p.classList.add('active-svg');
                             p.style.opacity = '1';
-                            // But we also highlight the hovered one (already active)
-                            if (p.dataset.target === targetId && isActive) {
-                                // Extra glow? We already have active-svg, but we can add a stronger effect if needed
-                                // We'll just keep as is.
-                            }
-                            // We don't dim others.
                         } else {
-                            // Normal mode: dim others, highlight the hovered one
                             if (p.dataset.target === targetId) {
                                 p.classList.add('active-svg');
                                 p.style.opacity = '1';
@@ -1787,20 +1843,14 @@
                 }
             };
 
-            // Override mouseenter and mouseleave to respect highlightAlways
             parts.forEach(part => {
                 part.addEventListener('mouseenter', (e) => {
                     const svg = e.target.closest('svg');
-                    // In highlightAlways mode, we still want to maybe add extra effect, but we keep all bright.
-                    // We'll just call toggleHighlight with isActive true.
                     toggleHighlight(part.dataset.target, true, svg, container);
                 });
                 part.addEventListener('mouseleave', (e) => {
                     const svg = e.target.closest('svg');
-                    // When leaving, if highlightAlways is true, we want to revert to all bright (no dimming)
-                    // but we also need to ensure all parts are active and opaque.
                     if (highlightAlways) {
-                        // Reapply all-bright state
                         const allParts = svg ? svg.querySelectorAll('.interactive-part') : container.querySelectorAll(
                             '.interactive-part');
                         allParts.forEach(p => {
@@ -1808,31 +1858,23 @@
                             p.style.opacity = '1';
                         });
                     } else {
-                        // Normal: remove highlight from this part (but keep others dimmed)
-                        // Actually when we leave, we want to revert to default (all dimmed except maybe none)
-                        // But we want only the hovered one to be bright, so on leave we dim all.
                         const allParts = svg ? svg.querySelectorAll('.interactive-part') : container.querySelectorAll(
                             '.interactive-part');
                         allParts.forEach(p => {
                             p.classList.remove('active-svg');
                             p.style.opacity = '0.3';
                         });
-                        // Also remove active-card from cards
                         const cards = container.querySelectorAll('.card-highlight');
                         cards.forEach(c => c.classList.remove('active-card'));
                     }
                 });
             });
 
-            // For cards: we want similar behavior
             cards.forEach(card => {
                 card.addEventListener('mouseenter', () => {
-                    // Highlight the card and its corresponding diagram part
                     const targetId = card.id;
-                    // Find the part with data-target matching card id
                     const part = container.querySelector(`.interactive-part[data-target="${targetId}"]`);
                     if (part) {
-                        // Trigger hover effect
                         const svg = part.closest('svg');
                         toggleHighlight(targetId, true, svg, container);
                     }
@@ -1841,7 +1883,6 @@
                 card.addEventListener('mouseleave', () => {
                     const targetId = card.id;
                     if (highlightAlways) {
-                        // Reapply all bright
                         const allParts = container.querySelectorAll('.interactive-part');
                         allParts.forEach(p => {
                             p.classList.add('active-svg');
@@ -1849,7 +1890,6 @@
                         });
                         card.classList.remove('active-card');
                     } else {
-                        // Dim all
                         const allParts = container.querySelectorAll('.interactive-part');
                         allParts.forEach(p => {
                             p.classList.remove('active-svg');
@@ -1860,11 +1900,9 @@
                 });
             });
 
-            // Initial application of highlight state
             applyHighlightState(container);
         }
 
-        // ── Apply highlight state to a container (or all) ──
         function applyHighlightState(container) {
             const parts = container ? container.querySelectorAll('.interactive-part') : document.querySelectorAll(
                 '.interactive-part');
@@ -1879,11 +1917,9 @@
                     p.style.opacity = '0.3';
                 });
             }
-            // Also handle cards: remove active-card when off, add when on? We'll keep cards neutral.
             const cards = container ? container.querySelectorAll('.card-highlight') : document.querySelectorAll(
                 '.card-highlight');
             cards.forEach(c => c.classList.remove('active-card'));
-            // If highlightAlways is true, we don't automatically highlight cards, only parts.
         }
 
         // ── Settings toggle ──
@@ -1900,11 +1936,9 @@
         function toggleHighlightAlways() {
             highlightAlways = !highlightAlways;
             updateSettingsUI();
-            // Apply to all diagrams (main and modals)
             applyHighlightState(null);
-            // Also, if any modal is open, we should update it too
             document.querySelectorAll('.modal-container').forEach(modal => {
-                if (modal.style.display === 'flex') {
+                if (modal.style.display === 'flex' && modal.id !== 'settingsModal' && modal.id !== 'modal-chart') {
                     const svgContainer = modal.querySelector('.modal-svg-container');
                     if (svgContainer) {
                         applyHighlightState(svgContainer);
@@ -1919,7 +1953,6 @@
         document.getElementById('settingsBtn').addEventListener('click', () => {
             document.getElementById('settingsModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
-            // Update UI to match current state
             updateSettingsUI();
         });
 
@@ -1938,6 +1971,21 @@
                 originalSvg = document.querySelector('#biological-neuron .diagram-svg');
             } else if (modalId === 'modal-artificial') {
                 originalSvg = document.querySelector('#artificial-neuron .diagram-svg');
+            } else if (modalId === 'modal-chart') {
+                // For chart modal, we create a canvas and init chart
+                const canvas = document.getElementById('modalChartCanvas');
+                if (canvas) {
+                    // Clear previous chart if any
+                    if (window.modalChartInstance) {
+                        window.modalChartInstance.destroy();
+                        window.modalChartInstance = null;
+                    }
+                    // Initialize chart on modal canvas
+                    initChart(canvas, true);
+                }
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                return;
             }
             if (originalSvg) {
                 const clone = originalSvg.cloneNode(true);
@@ -1950,7 +1998,6 @@
                 clone.style.objectFit = 'contain';
                 svgContainer.appendChild(clone);
                 attachDiagramEvents(modal);
-                // Apply highlight state to the cloned diagram
                 applyHighlightState(svgContainer);
             } else {
                 svgContainer.innerHTML = '<p class="text-slate-400 text-sm">Diagram not found.</p>';
@@ -1963,8 +2010,16 @@
             const modal = document.getElementById(modalId);
             modal.style.display = 'none';
             document.body.style.overflow = '';
-            const svgContainer = modal.querySelector('.modal-svg-container');
-            svgContainer.innerHTML = '';
+            if (modalId === 'modal-chart') {
+                // Destroy modal chart instance
+                if (window.modalChartInstance) {
+                    window.modalChartInstance.destroy();
+                    window.modalChartInstance = null;
+                }
+            } else {
+                const svgContainer = modal.querySelector('.modal-svg-container');
+                if (svgContainer) svgContainer.innerHTML = '';
+            }
         }
 
         document.addEventListener('keydown', (e) => {
@@ -1980,6 +2035,189 @@
                     }
                 });
             }
+        });
+
+        // ── Chart Initialization ──
+        let mainChartInstance = null;
+
+        function initChart(canvas, isModal = false) {
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            // Generate synthetic data
+            const dataPoints = 100;
+            const labels = Array.from({ length: dataPoints }, (_, i) => i);
+
+            const generateMLData = () => {
+                return labels.map(x => (x === 0) ? 0 : 60 * (1 - Math.exp(-0.08 * x)));
+            };
+            const generateDLData = () => {
+                return labels.map(x => (x === 0) ? 0 : 90 * (1 - Math.exp(-0.03 * x)));
+            };
+
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Deep Learning Models',
+                        data: generateDLData(),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        fill: false,
+                        tension: 0.4
+                    }, {
+                        label: 'Machine Learning Techniques',
+                        data: generateMLData(),
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        fill: false,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { size: 13, family: 'Inter' },
+                            bodyFont: { size: 13, family: 'Inter' },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            callbacks: {
+                                title: () => null,
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += Math.round(context.parsed.y) + ' (Relative Performance)';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Size of Data (Amount of Data)',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold',
+                                    family: 'Inter'
+                                },
+                                color: isModal ? '#e2e8f0' : '#94a3b8',
+                                padding: { top: 20 }
+                            },
+                            ticks: {
+                                display: false
+                            },
+                            grid: {
+                                display: false,
+                                drawBorder: true,
+                                borderColor: isModal ? '#e2e8f0' : '#64748b',
+                                borderWidth: 2
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Accuracy (Performance)',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold',
+                                    family: 'Inter'
+                                },
+                                color: isModal ? '#e2e8f0' : '#94a3b8',
+                                padding: { bottom: 20 }
+                            },
+                            ticks: {
+                                display: false
+                            },
+                            grid: {
+                                display: false,
+                                drawBorder: true,
+                                borderColor: isModal ? '#e2e8f0' : '#64748b',
+                                borderWidth: 2
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            if (isModal) {
+                window.modalChartInstance = chart;
+            } else {
+                mainChartInstance = chart;
+            }
+            return chart;
+        }
+
+        // ── Initialize main chart when DOM ready ──
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainCanvas = document.getElementById('performanceChart');
+            if (mainCanvas) {
+                initChart(mainCanvas, false);
+            }
+
+            // Set initial highlight state to ON
+            highlightAlways = true;
+            updateSettingsUI();
+
+            attachDiagramEvents(document);
+            applyHighlightState(null);
+
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                isSidebarOpen = false;
+                sidebar.classList.add('sidebar-closed');
+                sidebarToggle.classList.add('closed');
+                sidebarToggle.classList.add('sidebar-closed');
+                sidebarToggle.classList.remove('sidebar-open-mobile');
+                if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+                if (mobileHeader) mobileHeader.classList.remove('shifted');
+            } else {
+                isSidebarOpen = true;
+                sidebar.classList.remove('sidebar-closed');
+                sidebarToggle.classList.remove('closed');
+                sidebarToggle.classList.remove('sidebar-closed');
+            }
+            updateTogglePosition();
+
+            renderView();
+            if (viewMode === 'full') {
+                const currentId = getVisibleSectionId();
+                updateActiveNavLink(currentId);
+                activeSectionId = currentId;
+            } else {
+                updateNavButtons();
+            }
+
+            // Handle window resize for chart
+            window.addEventListener('resize', function() {
+                if (mainChartInstance) {
+                    mainChartInstance.resize();
+                }
+                if (window.modalChartInstance) {
+                    window.modalChartInstance.resize();
+                }
+            });
         });
 
         // ── Section View Toggle & Navigation ──
@@ -2159,43 +2397,6 @@
                 }
                 updateTogglePosition();
             }, 150);
-        });
-
-        // ── Init ──
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set initial highlight state to ON
-            highlightAlways = true;
-            updateSettingsUI();
-
-            attachDiagramEvents(document);
-            // Apply initial highlight to all parts
-            applyHighlightState(null);
-
-            const isMobile = window.innerWidth < 768;
-            if (isMobile) {
-                isSidebarOpen = false;
-                sidebar.classList.add('sidebar-closed');
-                sidebarToggle.classList.add('closed');
-                sidebarToggle.classList.add('sidebar-closed');
-                sidebarToggle.classList.remove('sidebar-open-mobile');
-                if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
-                if (mobileHeader) mobileHeader.classList.remove('shifted');
-            } else {
-                isSidebarOpen = true;
-                sidebar.classList.remove('sidebar-closed');
-                sidebarToggle.classList.remove('closed');
-                sidebarToggle.classList.remove('sidebar-closed');
-            }
-            updateTogglePosition();
-
-            renderView();
-            if (viewMode === 'full') {
-                const currentId = getVisibleSectionId();
-                updateActiveNavLink(currentId);
-                activeSectionId = currentId;
-            } else {
-                updateNavButtons();
-            }
         });
     </script>
 </body>
